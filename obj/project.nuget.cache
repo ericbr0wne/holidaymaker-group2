@@ -1,12 +1,12 @@
 {
   "version": 2,
-  "dgSpecHash": "CJo1vki3ysqieeyI6T+1pgp0ry0XkSlP7b8VZQzn7hzs8tMMdF0L5PhSy4FpSrkA88IoDOnCwksObfGPjjcc4w==",
+  "dgSpecHash": "iN3YdyuKUotD1dRQhreV1QBRpZHhJkDlkbo7B/XZU1yQm6OmQezRrrPtjxBi32nG24xkNHWUChYdRuzr6KE6mw==",
   "success": true,
-  "projectFilePath": "C:\\Users\\klas_\\source\\repos\\holidaymaker-group2\\holidaymaker-group2.csproj",
+  "projectFilePath": "C:\\Users\\Eric Browne\\source\\repos\\holidaymaker-group2\\holidaymaker-group2.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\klas_\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\8.0.0\\microsoft.extensions.dependencyinjection.abstractions.8.0.0.nupkg.sha512",
-    "C:\\Users\\klas_\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\8.0.0\\microsoft.extensions.logging.abstractions.8.0.0.nupkg.sha512",
-    "C:\\Users\\klas_\\.nuget\\packages\\npgsql\\8.0.1\\npgsql.8.0.1.nupkg.sha512"
+    "C:\\Users\\Eric Browne\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\8.0.0\\microsoft.extensions.dependencyinjection.abstractions.8.0.0.nupkg.sha512",
+    "C:\\Users\\Eric Browne\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\8.0.0\\microsoft.extensions.logging.abstractions.8.0.0.nupkg.sha512",
+    "C:\\Users\\Eric Browne\\.nuget\\packages\\npgsql\\8.0.1\\npgsql.8.0.1.nupkg.sha512"
   ],
   "logs": []
 }

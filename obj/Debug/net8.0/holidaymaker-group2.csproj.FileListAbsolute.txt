@@ -18,3 +18,23 @@ C:\Users\klas_\source\repos\holidaymaker-group2\obj\Debug\net8.0\refint\holidaym
 C:\Users\klas_\source\repos\holidaymaker-group2\obj\Debug\net8.0\holidaymaker-group2.pdb
 C:\Users\klas_\source\repos\holidaymaker-group2\obj\Debug\net8.0\holidaymaker-group2.genruntimeconfig.cache
 C:\Users\klas_\source\repos\holidaymaker-group2\obj\Debug\net8.0\ref\holidaymaker-group2.dll
+C:\Users\Eric Browne\source\repos\holidaymaker-group2\bin\Debug\net8.0\holidaymaker-group2.exe
+C:\Users\Eric Browne\source\repos\holidaymaker-group2\bin\Debug\net8.0\holidaymaker-group2.deps.json
+C:\Users\Eric Browne\source\repos\holidaymaker-group2\bin\Debug\net8.0\holidaymaker-group2.runtimeconfig.json
+C:\Users\Eric Browne\source\repos\holidaymaker-group2\bin\Debug\net8.0\holidaymaker-group2.dll
+C:\Users\Eric Browne\source\repos\holidaymaker-group2\bin\Debug\net8.0\holidaymaker-group2.pdb
+C:\Users\Eric Browne\source\repos\holidaymaker-group2\bin\Debug\net8.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll
+C:\Users\Eric Browne\source\repos\holidaymaker-group2\bin\Debug\net8.0\Microsoft.Extensions.Logging.Abstractions.dll
+C:\Users\Eric Browne\source\repos\holidaymaker-group2\bin\Debug\net8.0\Npgsql.dll
+C:\Users\Eric Browne\source\repos\holidaymaker-group2\obj\Debug\net8.0\holidaymaker-group2.csproj.AssemblyReference.cache
+C:\Users\Eric Browne\source\repos\holidaymaker-group2\obj\Debug\net8.0\holidaymaker-group2.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Eric Browne\source\repos\holidaymaker-group2\obj\Debug\net8.0\holidaymaker-group2.AssemblyInfoInputs.cache
+C:\Users\Eric Browne\source\repos\holidaymaker-group2\obj\Debug\net8.0\holidaymaker-group2.AssemblyInfo.cs
+C:\Users\Eric Browne\source\repos\holidaymaker-group2\obj\Debug\net8.0\holidaymaker-group2.csproj.CoreCompileInputs.cache
+C:\Users\Eric Browne\source\repos\holidaymaker-group2\obj\Debug\net8.0\holidaymaker-group2.sourcelink.json
+C:\Users\Eric Browne\source\repos\holidaymaker-group2\obj\Debug\net8.0\holidaymaker-group2.csproj.CopyComplete
+C:\Users\Eric Browne\source\repos\holidaymaker-group2\obj\Debug\net8.0\holidaymaker-group2.dll
+C:\Users\Eric Browne\source\repos\holidaymaker-group2\obj\Debug\net8.0\refint\holidaymaker-group2.dll
+C:\Users\Eric Browne\source\repos\holidaymaker-group2\obj\Debug\net8.0\holidaymaker-group2.pdb
+C:\Users\Eric Browne\source\repos\holidaymaker-group2\obj\Debug\net8.0\holidaymaker-group2.genruntimeconfig.cache
+C:\Users\Eric Browne\source\repos\holidaymaker-group2\obj\Debug\net8.0\ref\holidaymaker-group2.dll
