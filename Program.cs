@@ -39,9 +39,10 @@ CREATE TABLE IF NOT EXISTS customer(
     id SERIAL,
     first_name CHARACTER VARYING(255) NOT NULL,
     last_name CHARACTER VARYING(255) NOT NULL,
-    mail CHARACTER VARYING(255),
-    phone CHARACTER VARYING(255),
+    mail CHARACTER VARYING(255) NOT NULL,
+    phone BIGINT NOT NULL,
     date_of_birth DATE NOT NULL,
+    co_size INTEGER NOT NULL,
     PRIMARY KEY(id)
 )"))
 {
