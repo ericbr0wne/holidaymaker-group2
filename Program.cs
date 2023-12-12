@@ -9,12 +9,12 @@ CREATE TABLE IF NOT EXISTS room(
     id SERIAL,
     number INTEGER NOT NULL,
     size INTEGER NOT NULL,
-    location INTEGER NOT NULL,
+    location_id INTEGER NOT NULL,
     price INTEGER NOT NULL,
     PRIMARY KEY(id)
 )"))
 {
-    await cmd.ExecuteNonQueryAsync(); 
+    await cmd.ExecuteNonQueryAsync();
 }
 
 await using (var cmd = db.CreateCommand(@"
@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS customer(
     first_name CHARACTER VARYING(255) NOT NULL,
     last_name CHARACTER VARYING(255) NOT NULL,
     mail CHARACTER VARYING(255),
-    phone INTEGER,
+    phone CHARACTER VARYING(255),
     date_of_birth DATE NOT NULL,
     PRIMARY KEY(id)
 )"))
@@ -76,7 +76,7 @@ CREATE TABLE IF NOT EXISTS add_on(
 
 await using (var cmd = db.CreateCommand(@"
 ALTER TABLE IF EXISTS room
-    ADD FOREIGN KEY(location) REFERENCES location(id)    
+    ADD FOREIGN KEY(location_id) REFERENCES location(id)    
 "))
 {
     await cmd.ExecuteNonQueryAsync();
