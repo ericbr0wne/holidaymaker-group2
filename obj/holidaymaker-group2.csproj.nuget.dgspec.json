@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\johan\\source\\repos\\holidaymaker-group2\\holidaymaker-group2.csproj": {}
+    "C:\\Users\\klas_\\source\\repos\\holidaymaker-group2\\holidaymaker-group2.csproj": {}
   },
   "projects": {
-    "C:\\Users\\johan\\source\\repos\\holidaymaker-group2\\holidaymaker-group2.csproj": {
+    "C:\\Users\\klas_\\source\\repos\\holidaymaker-group2\\holidaymaker-group2.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\johan\\source\\repos\\holidaymaker-group2\\holidaymaker-group2.csproj",
+        "projectUniqueName": "C:\\Users\\klas_\\source\\repos\\holidaymaker-group2\\holidaymaker-group2.csproj",
         "projectName": "holidaymaker-group2",
-        "projectPath": "C:\\Users\\johan\\source\\repos\\holidaymaker-group2\\holidaymaker-group2.csproj",
-        "packagesPath": "C:\\Users\\johan\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\johan\\source\\repos\\holidaymaker-group2\\obj\\",
+        "projectPath": "C:\\Users\\klas_\\source\\repos\\holidaymaker-group2\\holidaymaker-group2.csproj",
+        "packagesPath": "C:\\Users\\klas_\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\klas_\\source\\repos\\holidaymaker-group2\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\johan\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\klas_\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
