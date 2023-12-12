@@ -85,7 +85,7 @@ ALTER TABLE IF EXISTS room
 await using (var cmd = db.CreateCommand(@"
 ALTER TABLE IF EXISTS booking
     ADD FOREIGN KEY(room_id) REFERENCES room(id),
-    ADD FOREIGN KEY(customer_id) REFERENCES customer(id),
+    ADD FOREIGN KEY(customer_id) REFERENCES customer(id)
 "))
 {
     await cmd.ExecuteNonQueryAsync();
