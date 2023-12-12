@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("holidaymaker-group2")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7ed07b7863505a91a91c507a4ee5e9196f68cbe6")]
 [assembly: System.Reflection.AssemblyProductAttribute("holidaymaker-group2")]
 [assembly: System.Reflection.AssemblyTitleAttribute("holidaymaker-group2")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

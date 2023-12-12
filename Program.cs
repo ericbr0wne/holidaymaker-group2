@@ -28,7 +28,6 @@ CREATE TABLE IF NOT EXISTS booking(
     extra_bed BOOLEAN NOT NULL DEFAULT FALSE,
     half_board BOOLEAN NOT NULL DEFAULT FALSE,
     full_board BOOLEAN NOT NULL DEFAULT FALSE,
-    price INTEGER NOT NULL,
     PRIMARY KEY(id)
 )"))
 {
@@ -85,7 +84,7 @@ ALTER TABLE IF EXISTS room
 await using (var cmd = db.CreateCommand(@"
 ALTER TABLE IF EXISTS booking
     ADD FOREIGN KEY(room_id) REFERENCES room(id),
-    ADD FOREIGN KEY(customer_id) REFERENCES customer(id)
+    ADD FOREIGN KEY(customer_id) REFERENCES customer(id),
 "))
 {
     await cmd.ExecuteNonQueryAsync();
