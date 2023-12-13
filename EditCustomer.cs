@@ -9,6 +9,8 @@ namespace holidaymaker_group2;
 
 public class Customer(NpgsqlDataSource db)
 {
+
+
      public async Task AddCustomer()
     {
         await using (var cmd = db.CreateCommand())
@@ -25,7 +27,7 @@ public class Customer(NpgsqlDataSource db)
 
         }
     }
-        static async Task UpdateCustomer(NpgsqlConnection db)
+        public async Task UpdateCustomer(NpgsqlDataSource db)
         {
             await using (var cmd = db.CreateCommand())
             {
