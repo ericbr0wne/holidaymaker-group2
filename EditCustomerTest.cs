@@ -7,7 +7,7 @@ using Npgsql;
 
 namespace holidaymaker_group2;
 
-public class Customer(NpgsqlDataSource db)
+public class EditCustomerTest(NpgsqlDataSource db)
 {
 
 public async Task UpdateCustomer(NpgsqlDataSource db)
@@ -31,9 +31,9 @@ public async Task UpdateCustomer(NpgsqlDataSource db)
         Console.WriteLine("Ange ny storlek på företaget (Tryck på Enter för att behålla befintligt)");
         string NewCoSize = Console.ReadLine();
 
-        // skapar en sträng för summera all input för i slutet göra en SET
+        // Konstruera SET-delen av SQL-frågan baserat på inmatade värden
         string setClause = "SET ";
-        //Om strängarna fått input så blir första värdet = det nya inmatade värde, om strängen är tom hoppa över denna del
+        
         if (!string.IsNullOrEmpty(NewFirstName))
         {
             setClause += $"first_name='{NewFirstName}', ";
@@ -64,13 +64,13 @@ public async Task UpdateCustomer(NpgsqlDataSource db)
             setClause += $"co_size='{NewCoSize}', ";
         }
 
-        // raderar 2 steg av setClause, Tar bort komma tecknet och mellanrummet som skapas i slutet. 
+        // Ta bort det sista kommat och mellanslaget, om det finns
         if (setClause.EndsWith(", "))
         {
             setClause = setClause.Substring(0, setClause.Length - 2);
         }
 
-        // Matar in alla värden som setClause samlat in på plats/person som söktes via DOB strängen
+        // Konstruera den kompletta SQL-frågan
         cmd.CommandText = $"UPDATE customers {setClause} WHERE date_of_birth = '{DOB}'";
 
         await cmd.ExecuteNonQueryAsync();

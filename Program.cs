@@ -11,6 +11,7 @@ await tables.CreateAll();
 
 var e = new Customer(db);
 
+
         bool menu = true;
 
         while (menu)
