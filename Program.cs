@@ -7,3 +7,10 @@ await using var db = NpgsqlDataSource.Create(dbUri);
 
 var tables = new Tables(db);
 await tables.CreateAll();
+
+
+var customer = new Customers(db);
+await customer.Reg();
+
+var displaycustomer = new Customers(db);
+await displaycustomer.DisplayCustomers();    
