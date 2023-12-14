@@ -59,6 +59,5 @@ while (await reader.ReadAsync())
     searchTable.AddRow(i, reader.GetString(0), reader.GetInt32(1), reader.GetInt32(2));
     i++;
 }
-searchTable.Configure(i => i.NumberAlignment = Alignment.Right);
 
 Console.WriteLine(searchTable);
