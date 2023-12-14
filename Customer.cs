@@ -1,5 +1,6 @@
 ﻿using ConsoleTables;
 using Npgsql;
+using System.ComponentModel.Design;
 using System.Data;
 using System.Numerics;
 using System.Runtime.InteropServices;
@@ -16,34 +17,71 @@ public class Customers(NpgsqlDataSource db)
     {
         await using (var cmd = db.CreateCommand())
         {
+            string first_name = string.Empty;
+            do
+            {
+                Console.Write("Enter first name: ");
+                first_name = Console.ReadLine();
 
-            Console.Write("Enter first name: ");
-            string? first_name = Console.ReadLine();
-            Console.WriteLine("First Name: " + first_name);
-            Console.WriteLine();   
+                if (string.IsNullOrEmpty(first_name))
+                {
+                    Console.WriteLine("Please enter first name.");
+                }
+                else
+                {
+                    Console.WriteLine("First Name: " + first_name);
+                    Console.WriteLine();
+                }
+            } while (string.IsNullOrEmpty(first_name));
 
-            Console.Write("Enter last name: ");
-            string? last_name = Console.ReadLine();
-            Console.WriteLine("Last name: " + last_name);
-            Console.WriteLine();
+            string last_name = string.Empty; 
+            do
+            {
+                Console.Write("Enter last name: ");
+                last_name = Console.ReadLine();
 
+                if (string.IsNullOrEmpty(last_name))
+                {
+                    Console.WriteLine("Please enter last name.");
+                }
+                else
+                {
+                    Console.WriteLine("Last Name: " + last_name);
+                    Console.WriteLine();
+                }
+            } while (string.IsNullOrEmpty(last_name));
 
-            Console.Write("Enter e-mail: ");
-            string? mail = Console.ReadLine();
-            Console.WriteLine("E-mail: " + mail);
-            Console.WriteLine();
+            string mail = string.Empty; 
+            do
+            {
+                Console.Write("Enter e-mail: ");
+                mail = Console.ReadLine();
 
+                if (string.IsNullOrEmpty(mail))
+                {
+                    Console.WriteLine("Please enter e-mail.");
+                }
+                else
+                {
+                    Console.WriteLine("E-mail: " + mail);
+                    Console.WriteLine();
+                }
+            } while (string.IsNullOrEmpty(mail));
+
+            //behöver endast (x antal?)siffror annars loop 
             Console.Write("Enter phone number: ");
             string phone = Console.ReadLine();
             Console.WriteLine("Phone number: " + phone);
             Console.WriteLine();
 
+            //behöver endast datum format annars loop
             Console.Write("Enter date of birth 'yyyy-mm-dd': ");
             string? stringDateOfBirth = Console.ReadLine();
             DateTime dateOfBirth = DateTime.Parse(stringDateOfBirth);
             Console.WriteLine("Date of birth: " + (dateOfBirth.ToShortDateString()));
             Console.WriteLine();
 
+            //behöver int mellan 1-15 annars loop. 
             Console.Write("Enter company size: ");
             string? stringCo_size = Console.ReadLine();
             int co_size = int.Parse(stringCo_size);
@@ -63,7 +101,6 @@ public class Customers(NpgsqlDataSource db)
         }
     }
 
-
     public async Task DisplayCustomers()
     {
 
@@ -80,9 +117,10 @@ public class Customers(NpgsqlDataSource db)
             Console.Write(displayCustTable);
         }
     }
+
+
+
+
 }
-
-
-
 
 
