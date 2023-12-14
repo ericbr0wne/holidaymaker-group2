@@ -97,10 +97,11 @@ public class Booking(NpgsqlDataSource db)
 
             // Genererar bara ett random nummer för bokningen mellan 10 000 och 99 999
             Random rnd = new Random();
-            int bookingNumber = 30777;
+            int bookingNumber = rnd.Next(10000, 99999);
 
             bool checkNumber = true;
 
+            // Kollar så att bokningsnumret inte är en dubblett, om det är så kommer den att generera ett nytt nummer
             while (checkNumber)
             {
                 int count = 0;
@@ -121,14 +122,12 @@ public class Booking(NpgsqlDataSource db)
                 if (count == 1)
                 {
                     bookingNumber = rnd.Next(10000, 99999);
-                    Console.WriteLine("New number generated: " + bookingNumber);
                 }
                 else
                 {
                     checkNumber = false;
                 }
             }
-
 
             cmd.CommandText = "INSERT INTO bookings (number, customer_id, room_id, start_date, end_date) VALUES ($1, $2, $3, $4, $5)";
 
