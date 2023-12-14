@@ -14,21 +14,21 @@ public async Task UpdateCustomer(NpgsqlDataSource db)
 {
     await using (var cmd = db.CreateCommand())
     {
-        Console.WriteLine("Redigera kund!");
-        Console.WriteLine("Ange födelsedatum för att söka efter en kund: ");
+        Console.WriteLine("Edit Customer!");
+        Console.WriteLine("Enter the date of birth to find customer: ");
         string DOB = Console.ReadLine();
 
-        Console.WriteLine("Ange nytt förnamn (Tryck på Enter för att behålla befintligt)");
+        Console.WriteLine("Enter Firstname: (Tap enter to keep old value)");
         string NewFirstName = Console.ReadLine();
-        Console.WriteLine("Ange nytt efternamn (Tryck på Enter för att behålla befintligt)");
+        Console.WriteLine("Enter Lastname (Tap enter to keep old value)");
         string NewLastName = Console.ReadLine();
-        Console.WriteLine("Ange ny e-post (Tryck på Enter för att behålla befintligt)");
+        Console.WriteLine("Enter Email (Tap enter to keep old value)");
         string NewMail = Console.ReadLine();
-        Console.WriteLine("Ange nytt telefonnummer (Tryck på Enter för att behålla befintligt)");
+        Console.WriteLine("Enter Phonenumber (Tap enter to keep old value)");
         string NewPhone = Console.ReadLine();
-        Console.WriteLine("Ange nytt födelsedatum (Tryck på Enter för att behålla befintligt)");
+        Console.WriteLine("Enter birth of date (Tap enter to keep old value)");
         string NewDob = Console.ReadLine();
-        Console.WriteLine("Ange ny storlek på företaget (Tryck på Enter för att behålla befintligt)");
+        Console.WriteLine("Enter CO Size(Tap enter to keep old value)");
         string NewCoSize = Console.ReadLine();
 
         // skapar en sträng för summera all input för i slutet göra en SET
