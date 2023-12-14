@@ -1,4 +1,5 @@
-﻿using Npgsql;
+﻿using ConsoleTables;
+using Npgsql;
 using System.Data;
 using System.Numerics;
 using System.Runtime.InteropServices;
@@ -46,7 +47,7 @@ public class Customers(NpgsqlDataSource db)
             Console.Write("Enter company size: ");
             string? stringCo_size = Console.ReadLine();
             int co_size = int.Parse(stringCo_size);
-            Console.WriteLine("Last name: " + co_size);
+            Console.WriteLine("Company size: " + co_size);
 
             cmd.CommandText = "INSERT INTO customers (first_name, last_name, mail, phone, date_of_birth, co_size) VALUES ($1, $2, $3, $4, $5, $6)";
 
@@ -65,13 +66,18 @@ public class Customers(NpgsqlDataSource db)
 
     public async Task DisplayCustomers()
     {
-        await using (var cmd = db.CreateCommand("SELECT first_name, last_name, mail, phone, dateOfBirth, co_size FROM customers"))
+
+        var displayCustTable = new ConsoleTable("FirstName", "LastName", "E-mail", "Phone", "DateOfBirth", "CompanySize");
+
+        await using (var cmd = db.CreateCommand("SELECT first_name, last_name, mail, phone, date_of_birth, co_size FROM customers"))
         await using (var reader = await cmd.ExecuteReaderAsync())
         {
             while (await reader.ReadAsync())
             {
-                Console.WriteLine(reader.GetString(0));
+                displayCustTable.AddRow(reader.GetString(0), reader.GetString(1), reader.GetString(2), reader.GetString(3), reader.GetDateTime(4).ToShortDateString(), reader.GetInt32(5));
             }
+
+            Console.Write(displayCustTable);
         }
     }
 }
