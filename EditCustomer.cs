@@ -14,6 +14,7 @@ public async Task UpdateCustomer()
 {
     await using (var cmd = db.CreateCommand())
     {
+        Console.Clear();
         Console.WriteLine("Edit Customer!");
         Console.WriteLine("Enter the date of birth to find customer: ");
         string DOB = Console.ReadLine();
