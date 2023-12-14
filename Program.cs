@@ -9,4 +9,4 @@ await using var db = NpgsqlDataSource.Create(dbUri);
 // await tables.CreateAll();
 
 Booking booking = new(db);
-await booking.CreateBooking();
+await booking.Create();

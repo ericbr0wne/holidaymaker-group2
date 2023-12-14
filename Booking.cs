@@ -10,7 +10,7 @@ namespace holidaymaker_group2;
 
 public class Booking(NpgsqlDataSource db)
 {
-    public async Task CreateBooking()
+    public async Task Create()
     {
         await using (var cmd = db.CreateCommand())
         {
@@ -25,6 +25,13 @@ public class Booking(NpgsqlDataSource db)
                 Console.Write("Enter customer's first and last name: ");
                 string? customerName = Console.ReadLine();
                 string[] customerNameSplit = customerName.Split(" ");
+                while (customerNameSplit.Length != 2)
+                {
+                    Console.Clear();
+                    Console.WriteLine("Invalid input, try to enter name again.");
+                    customerName = Console.ReadLine();
+                    customerNameSplit = customerName.Split(" ");
+                }
 
                 string qSearchCustomer = @$"
                     SELECT c.first_name, c.last_name, c.customer_id
