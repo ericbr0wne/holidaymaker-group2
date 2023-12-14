@@ -16,9 +16,9 @@ var e = new Customer(db);
 
         while (menu)
         {
-            Console.WriteLine("1: Add booking");
-            Console.WriteLine("2:Edit Customer");
-            Console.WriteLine("0: Exit");
+            Console.WriteLine("1: Booking");
+            Console.WriteLine("2: Customer");
+            Console.WriteLine("0: Search");
             string choice = Console.ReadLine();
             if (int.TryParse(choice, out int userinput))
             {
@@ -27,7 +27,7 @@ var e = new Customer(db);
                      case 1: Console.WriteLine("booking function");
                          break;
                      case 2:
-                         await e.UpdateCustomer(db);
+                         await e.UpdateCustomer();
                          break; 
                      case 0: menu = false;
                          break;

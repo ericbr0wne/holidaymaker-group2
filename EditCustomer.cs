@@ -10,7 +10,7 @@ namespace holidaymaker_group2;
 public class Customer(NpgsqlDataSource db)
 {
 
-public async Task UpdateCustomer(NpgsqlDataSource db)
+public async Task UpdateCustomer()
 {
     await using (var cmd = db.CreateCommand())
     {
