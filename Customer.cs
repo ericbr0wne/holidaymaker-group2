@@ -33,15 +33,14 @@ public class Customers(NpgsqlDataSource db)
             Console.WriteLine();
 
             Console.Write("Enter phone number: ");
-            string stringPhone = Console.ReadLine();
-            BigInteger phone = BigInteger.Parse(stringPhone);
+            string phone = Console.ReadLine();
             Console.WriteLine("Phone number: " + phone);
             Console.WriteLine();
 
             Console.Write("Enter date of birth 'yyyy-mm-dd': ");
             string? stringDateOfBirth = Console.ReadLine();
             DateTime dateOfBirth = DateTime.Parse(stringDateOfBirth);
-            Console.WriteLine("Date of birth: " + (dateOfBirth.ToShortDateString));
+            Console.WriteLine("Date of birth: " + (dateOfBirth.ToShortDateString()));
             Console.WriteLine();
 
             Console.Write("Enter company size: ");
@@ -66,7 +65,7 @@ public class Customers(NpgsqlDataSource db)
 
     public async Task DisplayCustomers()
     {
-        await using (var cmd = db.CreateCommand("SELECT first_name FROM customers"))
+        await using (var cmd = db.CreateCommand("SELECT first_name, last_name, mail, phone, dateOfBirth, co_size FROM customers"))
         await using (var reader = await cmd.ExecuteReaderAsync())
         {
             while (await reader.ReadAsync())
