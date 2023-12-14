@@ -19,7 +19,6 @@ public class Booking(NpgsqlDataSource db)
             
             // Gjorde en while-loop för att hitta kunden (för och efternamnet) som man söker på och skriva ut denna+customer_id
             // sedan sparas customer_id i variabeln "customerNumber"
-            // är inte klar då jag vill hitta ett sätt att lösa om man råkar trycka enter (så att allt inte kraschar)
             while (!foundCustomer)
             {
                 Console.Write("Enter customer's first and last name: ");
