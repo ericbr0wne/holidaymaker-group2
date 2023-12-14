@@ -16,7 +16,7 @@ public async Task UpdateCustomer()
     {
         Console.Clear();
         Console.WriteLine("Edit Customer!");
-        Console.WriteLine("Enter the date of birth to find customer: ");
+        Console.WriteLine("Enter the date of birth to find customer Format yyyy-mm-dd: ");
         string DOB = Console.ReadLine();
 
         Console.WriteLine("Enter Firstname: (Tap enter to keep old value)");
