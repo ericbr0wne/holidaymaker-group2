@@ -1,4 +1,5 @@
-﻿using holidaymaker_group2;
+﻿using ConsoleTables;
+using holidaymaker_group2;
 using Microsoft.VisualBasic;
 using Npgsql;
 using System.Linq.Expressions;
@@ -50,10 +51,14 @@ string qSearchRooms = @$"
 
 var reader = await db.CreateCommand(qSearchRooms).ExecuteReaderAsync();
 
-Console.WriteLine("{0,-3} {1,-24} {2,-10} {3,-10}\n","Row", "Hotel:", "Room No:", "Room size:");
+var searchTable = new ConsoleTable("Row", "Hotel", "Room No", "Room size");
+
 int i = 1;
 while (await reader.ReadAsync())
 {
-    Console.WriteLine("{0,-3} {1,-20} {2,8} {3,10}", i, reader.GetString(0), reader.GetInt32(1), reader.GetInt32(2));
+    searchTable.AddRow(i, reader.GetString(0), reader.GetInt32(1), reader.GetInt32(2));
     i++;
 }
+searchTable.Configure(i => i.NumberAlignment = Alignment.Right);
+
+Console.WriteLine(searchTable);
