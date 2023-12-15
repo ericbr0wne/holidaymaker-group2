@@ -6,25 +6,36 @@ public class Search(NpgsqlDataSource db)
 {
     public async Task AvailableRooms()
     {
-        string pattern = "yyyy-MM-dd";
-        var startOfSeason = new DateTime(2022 - 05 - 31);
-        var endOfSeason = new DateTime(2022 - 08 - 01);
-        DateTime sDate;
-        DateTime eDate;
+        string pattern = "yyyy-MM-dd";                   //Sets the required pattern for date-input.
+        var startOfSeason = new DateTime(2022, 05, 31);
+        var endOfSeason = new DateTime(2022, 08, 01);
+        DateTime sDate = new DateTime();                //DateTime variables for checking date input and that the dates are within required span and in the right order.
+        DateTime eDate = new DateTime();
 
         string? startDate = string.Empty;
         string? endDate = string.Empty;
 
-        bool validInput = false;
+        string inputPromt = "Please enter start day of booking ('yyyy-mm-dd')";   //used to keep old input
+
+        bool validInput = false;                        //Used to only let valid inputs through the do-while-loop
         do
         {
             Console.Clear();
-            Console.WriteLine("Please enter start day of booking ('yyyy-mm-dd')");
+            Console.WriteLine(inputPromt);
             startDate = Console.ReadLine();
             try
             {
                 sDate = DateTime.ParseExact(startDate, pattern, null);
-                validInput = true;
+                if (sDate > startOfSeason && sDate < endOfSeason)
+                {
+                    validInput = true;
+                    inputPromt = $"{inputPromt}\n{startDate}\nPlease enter end date of booking ('yyyy-mm-dd')";
+                }
+                else
+                {
+                    Console.WriteLine("Date outside of Holiday Season");
+                    Thread.Sleep(1000);
+                }
             }
             catch (FormatException)
             {
@@ -37,14 +48,29 @@ public class Search(NpgsqlDataSource db)
         {
             validInput = false;
             Console.Clear();
-            Console.WriteLine("Please enter start day of booking ('yyyy-mm-dd')");
-            Console.WriteLine(startDate);
-            Console.WriteLine("Please enter end day of booking ('yyyy-mm-dd')");
+            Console.WriteLine(inputPromt);
             endDate = Console.ReadLine();
             try
             {
                 eDate = DateTime.ParseExact(endDate, pattern, null);
-                validInput = true;
+                if (eDate > startOfSeason && eDate < endOfSeason)
+                {
+                    if (eDate > sDate)
+                    {
+                        validInput = true;
+                        inputPromt = $"{inputPromt}\n{endDate}\nChoose requirements (y/n)";
+                    }
+                    else
+                    {
+                        Console.WriteLine("End date must be after start date.");
+                        Thread.Sleep(1000);
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Date outside of Holiday Season");
+                    Thread.Sleep(1000);
+                }
             }
             catch (FormatException)
             {
@@ -66,15 +92,12 @@ public class Search(NpgsqlDataSource db)
         {
             validInput = false;
             Console.Clear();
-            Console.WriteLine("Please enter start day of booking ('yyyy-mm-dd')");
-            Console.WriteLine(startDate);
-            Console.WriteLine("Please enter end day of booking ('yyyy-mm-dd')");
-            Console.WriteLine(endDate);
-            Console.WriteLine("Choose requirements (y/n):");
+            Console.WriteLine(inputPromt);
             Console.Write("Pool: ");
             poolInput = Console.ReadLine();
             if (poolInput is "y" or "Y")
             {
+                inputPromt = $"{inputPromt}\nPool: {poolInput}";
                 validInput = true;
                 qPool = @"
 	            INTERSECT
@@ -88,6 +111,7 @@ public class Search(NpgsqlDataSource db)
             }
             else if (poolInput is "n" or "N")
             {
+                inputPromt = $"{inputPromt}\nPool: {poolInput}";
                 validInput = true;
             }
             else
@@ -101,17 +125,12 @@ public class Search(NpgsqlDataSource db)
         {
             validInput = false;
             Console.Clear();
-            Console.WriteLine("Please enter start day of booking ('yyyy-mm-dd')");
-            Console.WriteLine(startDate);
-            Console.WriteLine("Please enter end day of booking ('yyyy-mm-dd')");
-            Console.WriteLine(endDate);
-            Console.WriteLine("Choose requirements (y/n):");
-            Console.Write("Pool: ");
-            Console.WriteLine(poolInput);
+            Console.WriteLine(inputPromt);
             Console.Write("Evening enternainment: ");
             entertainmentInput = Console.ReadLine();
             if (entertainmentInput is "y" or "Y")
             {
+                inputPromt = $"{inputPromt}\nEvening entertainment: {entertainmentInput}";
                 validInput = true;
                 qEveningEnternainment = @"
             	INTERSECT
@@ -125,6 +144,7 @@ public class Search(NpgsqlDataSource db)
             }
             else if (entertainmentInput is "n" or "N")
             {
+                inputPromt = $"{inputPromt}\nEvening entertainment: {entertainmentInput}";
                 validInput = true;
             }
             else
@@ -138,19 +158,12 @@ public class Search(NpgsqlDataSource db)
         {
             validInput = false;
             Console.Clear();
-            Console.WriteLine("Please enter start day of booking ('yyyy-mm-dd')");
-            Console.WriteLine(startDate);
-            Console.WriteLine("Please enter end day of booking ('yyyy-mm-dd')");
-            Console.WriteLine(endDate);
-            Console.WriteLine("Choose requirements (y/n):");
-            Console.Write("Pool: ");
-            Console.WriteLine(poolInput);
-            Console.Write("Evening enternainment: ");
-            Console.WriteLine(entertainmentInput);
+            Console.WriteLine(inputPromt);
             Console.Write("Restaurant: ");
             restaurantInput = Console.ReadLine();
             if (restaurantInput is "y" or "Y")
             {
+                inputPromt = $"{inputPromt}\nRestaurant: {restaurantInput}";
                 validInput = true;
                 qRestaurant = @"
 	            INTERSECT
@@ -164,6 +177,7 @@ public class Search(NpgsqlDataSource db)
             }
             else if (restaurantInput is "n" or "N")
             {
+                inputPromt = $"{inputPromt}\nRestaurant: {restaurantInput}";
                 validInput = true;
             }
             else
@@ -177,21 +191,12 @@ public class Search(NpgsqlDataSource db)
         {
             validInput = false;
             Console.Clear();
-            Console.WriteLine("Please enter start day of booking ('yyyy-mm-dd')");
-            Console.WriteLine(startDate);
-            Console.WriteLine("Please enter end day of booking ('yyyy-mm-dd')");
-            Console.WriteLine(endDate);
-            Console.WriteLine("Choose requirements (y/n):");
-            Console.Write("Pool: ");
-            Console.WriteLine(poolInput);
-            Console.Write("Evening enternainment: ");
-            Console.WriteLine(entertainmentInput);
-            Console.Write("Restaurant: ");
-            Console.WriteLine(restaurantInput);
+            Console.WriteLine(inputPromt);
             Console.Write("Kids club: ");
             kidsClubInput = Console.ReadLine();
             if (kidsClubInput is "y" or "Y")
             {
+                inputPromt = $"{inputPromt}\nKids club: {kidsClubInput}";
                 validInput = true;
                 qKidsClub = @"
 	            INTERSECT
@@ -205,6 +210,7 @@ public class Search(NpgsqlDataSource db)
             }
             else if (kidsClubInput is "n" or "N")
             {
+                inputPromt = $"{inputPromt}\nKids club: {kidsClubInput}";
                 validInput = true;
             }
             else
@@ -232,6 +238,7 @@ public class Search(NpgsqlDataSource db)
         var reader = await db.CreateCommand(qSearchRooms).ExecuteReaderAsync();
 
         var searchTable = new ConsoleTable("#", "Hotel", "Room No", "Room size", "Rating", "Distance to Beach", "Distance to city centre", "Price");
+        searchTable.Configure(o => o.EnableCount = false);
 
         int i = 1;
         while (await reader.ReadAsync())
