@@ -4,9 +4,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace holidaymaker_group2
+namespace holidaymaker_group2;
+
+public enum Menu
 {
-    internal class Menu
-    {
-    }
+    Main,
+    Customers,
+    Bookings,
+    Search,
+    Exit
 }
+
+public class MainMenu();
