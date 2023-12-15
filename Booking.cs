@@ -15,6 +15,8 @@ public class Booking(NpgsqlDataSource db)
         await using (var cmd = db.CreateCommand())
         {
             int customerNumber = 0;
+            int companySize = 0;
+            string? customerName = string.Empty;
             bool foundCustomer = false;
 
             // Gjorde en while-loop för att hitta kunden (för och efternamnet) som man söker på och skriva ut denna+customer_id
@@ -22,7 +24,7 @@ public class Booking(NpgsqlDataSource db)
             while (!foundCustomer)
             {
                 Console.Write("Enter customer's first and last name: ");
-                string? customerName = Console.ReadLine();
+                customerName = Console.ReadLine();
                 string[] customerNameSplit = customerName.Split(" ");
                 while (customerNameSplit.Length != 2)
                 {
@@ -33,7 +35,7 @@ public class Booking(NpgsqlDataSource db)
                 }
 
                 string qSearchCustomer = @$"
-                    SELECT c.first_name, c.last_name, c.customer_id
+                    SELECT c.first_name, c.last_name, c.customer_id, c.co_size
                     FROM customers c
                     WHERE c.first_name = '{customerNameSplit[0]}' AND c.last_name = '{customerNameSplit[1]}'
                 ";
@@ -42,7 +44,8 @@ public class Booking(NpgsqlDataSource db)
 
                 if (await reader.ReadAsync())
                 {
-                    Console.WriteLine("Customer name: " + reader.GetString(0) + " " + reader.GetString(1) + "\nCustomer ID: " + (customerNumber = reader.GetInt32(2)));
+                    Console.WriteLine("\nCustomer name: " + reader.GetString(0) + " " + reader.GetString(1) + "\nCustomer ID: "
+                        + (customerNumber = reader.GetInt32(2)) + "\nCompany size: " + (companySize = reader.GetInt32(3)));
                     foundCustomer = true;
                 }
                 else
@@ -51,11 +54,6 @@ public class Booking(NpgsqlDataSource db)
                     Console.WriteLine("Customer not found, please try again.\n");
                 }
             }
-
-            // Min tanke kring room_id är att vi hämtar den från en sökning i en annan klass (så att det faktiskt är möjligt att boka rummet det datumet)
-            Console.Write("\nEnter the room ID for this vacation: ");
-            string? stringRoomID = Console.ReadLine();
-            int roomID = int.Parse(stringRoomID);
 
             // Snodde den snygga try-catchen från Klas, men la till while-loopar så att man måste skriva korrekt datum
             string pattern = "yyyy-mm-dd";
@@ -86,7 +84,7 @@ public class Booking(NpgsqlDataSource db)
 
             while (!enterDate2)
             {
-                Console.WriteLine("Enter the end date for this vacation ('yyyy-mm-dd'):");
+                Console.WriteLine("\nEnter the end date for this vacation ('yyyy-mm-dd'):");
                 stringEndDate = Console.ReadLine();
                 try
                 {
@@ -101,31 +99,56 @@ public class Booking(NpgsqlDataSource db)
             }
             DateTime endDate = DateTime.Parse(stringEndDate);
 
+            // Min tanke kring room_id är att vi hämtar den från en sökning i en annan klass (så att det faktiskt är möjligt att boka rummet det datumet)
+            Console.Write("\nEnter the room ID for this vacation: ");
+            string? stringRoomID = Console.ReadLine();
+            int roomID = int.Parse(stringRoomID);
+
             List<int> addOnList = new List<int>();
+            List<string> addOnList2 = new List<string>();
 
             bool addOns = false;
 
-            while (!addOns)
+            Console.Write("\nDo you want any add-ons for the booking? (Y/N): ");
+
+            do
             {
-                Console.Clear();
-                Console.Write("Does the customer want any add ons for the booking? (Y/N): ");
                 string? input = Console.ReadLine().ToUpper();
                 if (input == "Y")
                 {
                     Console.Clear();
                     Console.WriteLine("1. Extra bed\n2. Half board\n3. Full board");
-                    Console.Write("Type the number for the desired add on: ");
-                    int? addOnInput = Convert.ToInt32(Console.ReadLine());
+                    Console.Write("Type the number for the desired add-on: ");
+                    int addOnInput = Convert.ToInt32(Console.ReadLine());
+
+                    if (addOnInput == 2 && addOnList.Contains(2))
+                    {
+                        Console.WriteLine("Can't order more than one half board.");
+                        Thread.Sleep(1200);
+                        addOns = false;
+                        break;
+                    }
+                    else if (addOnInput == 2 && addOnList.Contains(2))
+                    {
+                        Console.WriteLine("Can't order more than one full board.");
+                        Thread.Sleep(1200);
+                        addOns = false;
+                        break;
+                    }
+
                     switch (addOnInput)
                     {
                         case 1:
                             addOnList.Add(1);
+                            addOnList2.Add("Extra bed");
                             break;
                         case 2:
                             addOnList.Add(2);
+                            addOnList2.Add("Half board");
                             break;
                         case 3:
                             addOnList.Add(3);
+                            addOnList2.Add("Full board");
                             break;
                         default:
                             break;
@@ -138,11 +161,15 @@ public class Booking(NpgsqlDataSource db)
                 }
                 else
                 {
+                    Console.Clear();
                     Console.WriteLine("Invalid input, please type either 'Y' or 'N'");
-                    Console.Write("Press any key to continue...");
-                    Console.ReadKey();
+                    Thread.Sleep(1500);
+                    Console.Clear();
                 }
+
+                Console.Write("Does the customer want more add-ons? (Y/N): ");
             }
+            while (!addOns);
 
 
             // Genererar bara ett random nummer för bokningen mellan 10 000 och 99 999
@@ -157,10 +184,10 @@ public class Booking(NpgsqlDataSource db)
                 int count = 0;
 
                 string qSearchBookingNumber = @$"
-                SELECT COUNT(*)
-                FROM bookings b
-                WHERE b.number = {bookingNumber}
-            ";
+                    SELECT COUNT(*)
+                    FROM bookings b
+                    WHERE b.number = {bookingNumber}
+                ";
 
                 var reader = await db.CreateCommand(qSearchBookingNumber).ExecuteReaderAsync();
 
@@ -178,6 +205,35 @@ public class Booking(NpgsqlDataSource db)
                     checkNumber = false;
                 }
             }
+
+            string locationName = string.Empty;
+
+            string qSearchLocation = @$"
+                    SELECT l.name
+                    FROM locations l
+                    JOIN rooms r ON l.location_id = r.location_id
+                    WHERE r.room_id = {roomID}
+            ";
+
+            var reader2 = await db.CreateCommand(qSearchLocation).ExecuteReaderAsync();
+
+            while (await reader2.ReadAsync())
+            {
+                locationName = reader2.GetString(0);
+            }
+
+            Console.Clear();
+            Console.WriteLine("Booking details\n\nCustomer name: " + customerName + "\nCustomer ID: " + customerNumber + "\nCompany size: " + companySize + "\nRoom ID: " + roomID +
+                "\nLocation: " + locationName);
+            foreach (var item in addOnList2)
+            {
+                Console.WriteLine("Add-ons: " + item);
+            }
+            Console.WriteLine("Start date: " + stringStartDate + "\nEnd date: " + stringEndDate);
+
+            Console.Write("\nPress any key to finish the booking...");
+            Console.ReadKey();
+
 
             cmd.CommandText = "INSERT INTO bookings (number, customer_id, room_id, start_date, end_date) VALUES ($1, $2, $3, $4, $5)";
 
@@ -202,11 +258,11 @@ public class Booking(NpgsqlDataSource db)
                     WHERE b.customer_id = {customerNumber}
                 ";
 
-            var reader2 = await db.CreateCommand(qFindBookingID).ExecuteReaderAsync();
+            var reader3 = await db.CreateCommand(qFindBookingID).ExecuteReaderAsync();
 
-            while (reader2.Read())
+            while (reader3.Read())
             {
-                bookingID = reader2.GetInt32(0);
+                bookingID = reader3.GetInt32(0);
             }
 
             foreach (var item in addOnList)
