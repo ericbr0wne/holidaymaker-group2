@@ -2,13 +2,17 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
+using Npgsql;
 
 namespace holidaymaker_group2;
-public class MenuClass
+
+public class MenuClass(NpgsqlDataSource db)
+
 {
-    private enum Menu
+    private enum Menu //type
     {
         Main,
         Customers,
@@ -17,7 +21,7 @@ public class MenuClass
         Exit
     }
 
-    public static void MainMenu()
+    async public Task MainMenu()
     {
 
 
@@ -80,7 +84,7 @@ public class MenuClass
                 switch (Console.ReadLine())
                 {
                     case "1":
-                        //Customers.Reg();
+                        //Customers.Reg(); 
                         break;
                     case "2":
                         //Customers.Edit();

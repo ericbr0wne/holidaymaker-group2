@@ -9,5 +9,5 @@ await using var db = NpgsqlDataSource.Create(dbUri);
 var tables = new Tables(db);
 await tables.CreateAll(); //ha som en meny funktion? 
 
-
-MenuClass.MainMenu();
+MenuClass menuClass = new MenuClass(db);
+await menuClass.MainMenu();
