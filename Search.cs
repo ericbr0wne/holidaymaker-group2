@@ -1,5 +1,6 @@
 ﻿using Npgsql;
 using ConsoleTables;
+using System.Security.Cryptography.X509Certificates;
 namespace holidaymaker_group2;
 
 public class Search(NpgsqlDataSource db)
@@ -15,21 +16,21 @@ public class Search(NpgsqlDataSource db)
         string? startDate = string.Empty;
         string? endDate = string.Empty;
 
-        string inputPromt = "Please enter start day of booking ('yyyy-mm-dd')";   //used to keep old input
+        string inputPromt = "Please enter start day of booking ('yyyy-mm-dd')";   //used to keep old input for output
 
-        bool validInput = false;                        //Used to only let valid inputs through the do-while-loop
+        bool validInput = false;                        //Used to only let valid inputs through the do-while-loops
         do
         {
             Console.Clear();
             Console.WriteLine(inputPromt);
-            startDate = Console.ReadLine();
+            startDate = Console.ReadLine() ?? string.Empty;
             try
             {
-                sDate = DateTime.ParseExact(startDate, pattern, null);
-                if (sDate > startOfSeason && sDate < endOfSeason)
+                sDate = DateTime.ParseExact(startDate, pattern, null);      //Tries to parse the date string in to a DateTime-variable.
+                if (sDate > startOfSeason && sDate < endOfSeason)           //Makes sure the date is within the right season. 
                 {
                     validInput = true;
-                    inputPromt = $"{inputPromt}\n{startDate}\nPlease enter end date of booking ('yyyy-mm-dd')";
+                    inputPromt = $"{inputPromt}\n{startDate}\nPlease enter end date of booking ('yyyy-mm-dd')"; //updates input-variable
                 }
                 else
                 {
@@ -49,7 +50,7 @@ public class Search(NpgsqlDataSource db)
             validInput = false;
             Console.Clear();
             Console.WriteLine(inputPromt);
-            endDate = Console.ReadLine();
+            endDate = Console.ReadLine() ?? string.Empty;
             try
             {
                 eDate = DateTime.ParseExact(endDate, pattern, null);
@@ -80,11 +81,12 @@ public class Search(NpgsqlDataSource db)
         } while (!validInput);
 
         string qPool = string.Empty;
-        string qEveningEnternainment = string.Empty;
+        string qEveningEnternainment = string.Empty;            //strings to update search-query depending on selected requirements
         string qRestaurant = string.Empty;
         string qKidsClub = string.Empty;
+
         string poolInput = string.Empty;
-        string entertainmentInput = string.Empty;
+        string entertainmentInput = string.Empty;               //strings to keep user input for console output
         string restaurantInput = string.Empty;
         string kidsClubInput = string.Empty;
 
@@ -94,13 +96,13 @@ public class Search(NpgsqlDataSource db)
             Console.Clear();
             Console.WriteLine(inputPromt);
             Console.Write("Pool: ");
-            poolInput = Console.ReadLine();
+            poolInput = Console.ReadLine() ?? string.Empty;
             if (poolInput is "y" or "Y")
             {
                 inputPromt = $"{inputPromt}\nPool: {poolInput}";
-                validInput = true;
-                qPool = @"
-	            INTERSECT
+                validInput = true;                                                              // Joins rooms with locations and locations_to_facilities to get the rooms that offers a pool (1)
+                qPool = @"                                                                  
+	            INTERSECT               
 
 	            SELECT l.name, r.number, r.size, l.rating, l.beach_distance, l.centre_distance, r.price
 		        FROM rooms r
@@ -127,11 +129,11 @@ public class Search(NpgsqlDataSource db)
             Console.Clear();
             Console.WriteLine(inputPromt);
             Console.Write("Evening enternainment: ");
-            entertainmentInput = Console.ReadLine();
+            entertainmentInput = Console.ReadLine() ?? string.Empty;
             if (entertainmentInput is "y" or "Y")
             {
                 inputPromt = $"{inputPromt}\nEvening entertainment: {entertainmentInput}";
-                validInput = true;
+                validInput = true;                                                                      // Joins rooms with locations and locations_to_facilities to get the rooms that offers evening enternainment (2)                                          
                 qEveningEnternainment = @"
             	INTERSECT
 
@@ -160,11 +162,11 @@ public class Search(NpgsqlDataSource db)
             Console.Clear();
             Console.WriteLine(inputPromt);
             Console.Write("Restaurant: ");
-            restaurantInput = Console.ReadLine();
+            restaurantInput = Console.ReadLine() ?? string.Empty;
             if (restaurantInput is "y" or "Y")
             {
                 inputPromt = $"{inputPromt}\nRestaurant: {restaurantInput}";
-                validInput = true;
+                validInput = true;                                                      // Joins rooms with locations and locations_to_facilities to get the rooms that offers a restaurant (3)
                 qRestaurant = @"
 	            INTERSECT
 
@@ -193,11 +195,11 @@ public class Search(NpgsqlDataSource db)
             Console.Clear();
             Console.WriteLine(inputPromt);
             Console.Write("Kids club: ");
-            kidsClubInput = Console.ReadLine();
+            kidsClubInput = Console.ReadLine() ?? string.Empty;
             if (kidsClubInput is "y" or "Y")
             {
                 inputPromt = $"{inputPromt}\nKids club: {kidsClubInput}";
-                validInput = true;
+                validInput = true;                                                              // Joins rooms with locations and locations_to_facilities to get the rooms that offers a kids club (4)
                 qKidsClub = @"
 	            INTERSECT
 
@@ -220,33 +222,74 @@ public class Search(NpgsqlDataSource db)
             }
         } while (!validInput);
 
-        string qSearchRooms = @$"
-	    SELECT l.name, r.number, r.size, l.rating, l.beach_distance, l.centre_distance, r.price
-	    FROM rooms r
-		JOIN locations l USING (location_id)
-		WHERE r.room_id NOT IN(
-		    SELECT b.room_id
-			FROM bookings b
-			WHERE (b.start_date, b.end_date) OVERLAPS (date '{startDate}', date '{endDate}'))
-		{qPool}
-		{qEveningEnternainment}
-		{qRestaurant}
-		{qKidsClub}
-        ORDER BY name DESC, number ASC
-        ";
+        string orderPriceOrRating = string.Empty;
 
-        var reader = await db.CreateCommand(qSearchRooms).ExecuteReaderAsync();
-
-        var searchTable = new ConsoleTable("#", "Hotel", "Room No", "Room size", "Rating", "Distance to Beach", "Distance to city centre", "Price");
-        searchTable.Configure(o => o.EnableCount = false);
-
-        int i = 1;
-        while (await reader.ReadAsync())
-        {
-            searchTable.AddRow(i, reader.GetString(0), reader.GetInt32(1), reader.GetInt32(2), $"{reader.GetInt32(3)}/5", $"{reader.GetInt32(4)}km", $"{reader.GetInt32(5)}km", $"{reader.GetDecimal(6)}$");
-            i++;
-        }
         Console.Clear();
-        Console.WriteLine(searchTable);
+
+        while (true)
+        {
+            await ClearConsole();
+            
+            //query for finding the rooms that are available for a given timespan. It does this by selecting the dates that does not OVERLAP. 
+            string qSearchRooms = @$"
+	        SELECT l.name, r.number, r.size, l.rating, l.beach_distance, l.centre_distance, r.price
+	        FROM rooms r
+		    JOIN locations l USING (location_id)
+		    WHERE r.room_id NOT IN(
+		        SELECT b.room_id
+			    FROM bookings b
+			    WHERE (b.start_date, b.end_date) OVERLAPS (date '{startDate}', date '{endDate}'))
+		    {qPool}
+		    {qEveningEnternainment}
+    		{qRestaurant}
+	    	{qKidsClub}
+            ORDER BY {orderPriceOrRating}name ASC, number ASC
+            ";
+
+            var reader = await db.CreateCommand(qSearchRooms).ExecuteReaderAsync();
+
+            var resultTable = new ConsoleTable("#", "Hotel", "Room No", "Room size", "Rating", "Distance to Beach", "Distance to city centre", "Price"); //Creating a table using NuGet-package ConsoleTables 
+            resultTable.Configure(o => o.EnableCount = false); // Removes annoying counter from displaying below the table.
+
+            int i = 1;
+            while (await reader.ReadAsync())
+            {
+                resultTable.AddRow(i, reader.GetString(0), reader.GetInt32(1), reader.GetInt32(2), $"{reader.GetInt32(3)}/5", $"{reader.GetInt32(4)}km", $"{reader.GetInt32(5)}km", $"{reader.GetDecimal(6)}$");
+
+                i++;
+            }
+
+            Console.WriteLine(resultTable);
+
+            Console.WriteLine("1. Order by price");
+            Console.WriteLine("2. Order by rating");
+            Console.WriteLine("3. Add room to booking");
+            Console.WriteLine("4. Exit");
+
+            switch (Console.ReadKey(true).Key)
+            {
+                case ConsoleKey.D1:
+                    orderPriceOrRating = "price ASC, ";
+                    Thread.Sleep(1000);
+                    break;
+                case ConsoleKey.D2:
+                    orderPriceOrRating = "rating DESC, ";
+                    Thread.Sleep(1000);
+                    break;
+                case ConsoleKey.D3:
+                    break;
+                case ConsoleKey.D4:
+                    return;
+                default:
+                    Console.WriteLine("Invalid input");
+                    Thread.Sleep(1000);
+                    break;
+            }
+        }
+    }
+
+    async Task ClearConsole()
+    {
+        Console.Clear();
     }
 }
