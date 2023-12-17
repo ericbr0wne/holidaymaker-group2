@@ -9,10 +9,10 @@ using Npgsql;
 
 namespace holidaymaker_group2;
 
-public class MenuClass(NpgsqlDataSource db)
+public class Menu(NpgsqlDataSource db)
 
 {
-    private enum Menu //type
+    private enum Type 
     {
         Main,
         Customers,
@@ -21,15 +21,15 @@ public class MenuClass(NpgsqlDataSource db)
         Exit
     }
 
-    async public Task MainMenu()
+    async public Task Main()
     {
 
 
-        Menu menu = Menu.Main;
+        Type menu = Type.Main;
 
         while (true)
         {
-            if (menu.Equals(Menu.Main))
+            if (menu.Equals(Type.Main))
             {
                 Console.Clear();
                 Console.WriteLine();
@@ -43,22 +43,22 @@ public class MenuClass(NpgsqlDataSource db)
             }
 
 
-            if (menu.Equals(Menu.Main))
+            if (menu.Equals(Type.Main))
             {
                 string? input = Console.ReadLine();
                 switch (input)
                 {
                     case "1":
-                        menu = Menu.Customers;
+                        menu = Type.Customers;
                         break;
                     case "2":
-                        menu = Menu.Bookings;
+                        menu = Type.Bookings;
                         break;
                     case "3":
-                        menu = Menu.Search;
+                        menu = Type.Search;
                         break;
                     case "4":
-                        menu = Menu.Exit;
+                        menu = Type.Exit;
                         break;
                     default:
                         Console.Clear();
@@ -70,7 +70,7 @@ public class MenuClass(NpgsqlDataSource db)
                 }
             }
 
-            if (menu.Equals(Menu.Customers))
+            if (menu.Equals(Type.Customers))
             {
                 Console.Clear();
                 Console.WriteLine("*** Customers ***");
@@ -93,10 +93,10 @@ public class MenuClass(NpgsqlDataSource db)
                         //Customers.Display();
                         break;
                     case "4":
-                        menu = Menu.Main;
+                        menu = Type.Main;
                         continue;
                     case "5":
-                        menu = Menu.Exit;
+                        menu = Type.Exit;
                         break;
                     default:
                         Console.Clear();
@@ -108,7 +108,7 @@ public class MenuClass(NpgsqlDataSource db)
                 }
             }
 
-            if (menu.Equals(Menu.Bookings))
+            if (menu.Equals(Type.Bookings))
             {
 
                 Console.Clear();
@@ -132,10 +132,10 @@ public class MenuClass(NpgsqlDataSource db)
                         //Bookings.Delete();
                         break;
                     case "4":
-                        menu = Menu.Main;
+                        menu = Type.Main;
                         continue;
                     case "5":
-                        menu = Menu.Exit;
+                        menu = Type.Exit;
                         break;
                     default:
                         Console.Clear();
@@ -148,7 +148,7 @@ public class MenuClass(NpgsqlDataSource db)
             }
 
 
-            if (menu.Equals(Menu.Search))
+            if (menu.Equals(Type.Search))
             {
                 Console.Clear();
                 Console.WriteLine("*** Search ***");
@@ -184,10 +184,10 @@ public class MenuClass(NpgsqlDataSource db)
                         //Search.?();
                         break;
                     case "7":
-                        menu = Menu.Main;
+                        menu = Type.Main;
                         continue;
                     case "8":
-                        menu = Menu.Exit;
+                        menu = Type.Exit;
                         break;
                     default:
                         Console.Clear();
@@ -200,7 +200,7 @@ public class MenuClass(NpgsqlDataSource db)
             }
 
 
-            if (menu.Equals(Menu.Exit))
+            if (menu.Equals(Type.Exit))
             {
                 Console.Clear();
                 Console.WriteLine("The HolidayMaker has been shut down successfully.");

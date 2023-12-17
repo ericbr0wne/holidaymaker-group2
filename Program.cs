@@ -7,7 +7,7 @@ const string dbUri = "Host=localhost;Port=5455;Username=postgres;Password=postgr
 await using var db = NpgsqlDataSource.Create(dbUri);
 
 var tables = new Tables(db);
-await tables.CreateAll(); //ha som en meny funktion? 
+await tables.CreateAll(); //SKa vi lägga in den i MainMeny - som val att skapa tables.  
 
-MenuClass menuClass = new MenuClass(db);
-await menuClass.MainMenu();
+Menu Menu = new Menu(db);
+await Menu.Main();
