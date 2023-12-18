@@ -80,10 +80,10 @@ public class Search(NpgsqlDataSource db)
             }
         } while (!validInput);
 
-        string qPool = string.Empty;
-        string qEveningEnternainment = string.Empty;            //strings to update search-query depending on selected requirements
-        string qRestaurant = string.Empty;
-        string qKidsClub = string.Empty;
+        string hasPool = string.Empty;
+        string hasEveningEnternainment = string.Empty;            //strings to update search-query depending on selected requirements
+        string hasRestaurant = string.Empty;
+        string hasKidsClub = string.Empty;
 
         string poolInput = string.Empty;
         string entertainmentInput = string.Empty;               //strings to keep user input for console output
@@ -101,7 +101,7 @@ public class Search(NpgsqlDataSource db)
             {
                 inputPromt = $"{inputPromt}\nPool: {poolInput}";
                 validInput = true;                                                              // Joins rooms with locations and locations_to_facilities to get the rooms that offers a pool (1)
-                qPool = @"                                                                  
+                hasPool = @"                                                                  
 	            INTERSECT               
 
 	            SELECT l.name, r.number, r.size, l.rating, l.beach_distance, l.centre_distance, r.price
@@ -134,7 +134,7 @@ public class Search(NpgsqlDataSource db)
             {
                 inputPromt = $"{inputPromt}\nEvening entertainment: {entertainmentInput}";
                 validInput = true;                                                                      // Joins rooms with locations and locations_to_facilities to get the rooms that offers evening enternainment (2)                                          
-                qEveningEnternainment = @"
+                hasEveningEnternainment = @"
             	INTERSECT
 
             	SELECT l.name, r.number, r.size, l.rating, l.beach_distance, l.centre_distance, r.price
@@ -167,7 +167,7 @@ public class Search(NpgsqlDataSource db)
             {
                 inputPromt = $"{inputPromt}\nRestaurant: {restaurantInput}";
                 validInput = true;                                                      // Joins rooms with locations and locations_to_facilities to get the rooms that offers a restaurant (3)
-                qRestaurant = @"
+                hasRestaurant = @"
 	            INTERSECT
 
 	            SELECT l.name, r.number, r.size, l.rating, l.beach_distance, l.centre_distance, r.price
@@ -200,7 +200,7 @@ public class Search(NpgsqlDataSource db)
             {
                 inputPromt = $"{inputPromt}\nKids club: {kidsClubInput}";
                 validInput = true;                                                              // Joins rooms with locations and locations_to_facilities to get the rooms that offers a kids club (4)
-                qKidsClub = @"
+                hasKidsClub = @"
 	            INTERSECT
 
 	            SELECT l.name, r.number, r.size, l.rating, l.beach_distance, l.centre_distance, r.price
@@ -228,8 +228,7 @@ public class Search(NpgsqlDataSource db)
 
         while (true)
         {
-            await ClearConsole();
-            
+            Console.WriteLine("\n########################################################################\n");
             //query for finding the rooms that are available for a given timespan. It does this by selecting the dates that does not OVERLAP. 
             string qSearchRooms = @$"
 	        SELECT l.name, r.number, r.size, l.rating, l.beach_distance, l.centre_distance, r.price
@@ -239,10 +238,10 @@ public class Search(NpgsqlDataSource db)
 		        SELECT b.room_id
 			    FROM bookings b
 			    WHERE (b.start_date, b.end_date) OVERLAPS (date '{startDate}', date '{endDate}'))
-		    {qPool}
-		    {qEveningEnternainment}
-    		{qRestaurant}
-	    	{qKidsClub}
+		    {hasPool}
+		    {hasEveningEnternainment}
+    		{hasRestaurant}
+	    	{hasKidsClub}
             ORDER BY {orderPriceOrRating}name ASC, number ASC
             ";
 
@@ -252,29 +251,26 @@ public class Search(NpgsqlDataSource db)
             resultTable.Configure(o => o.EnableCount = false); // Removes annoying counter from displaying below the table.
 
             int i = 1;
-            while (await reader.ReadAsync())
+            while (await reader.ReadAsync()) //Gets the values from the database and adds it to rows in the table for search results.
             {
                 resultTable.AddRow(i, reader.GetString(0), reader.GetInt32(1), reader.GetInt32(2), $"{reader.GetInt32(3)}/5", $"{reader.GetInt32(4)}km", $"{reader.GetInt32(5)}km", $"{reader.GetDecimal(6)}$");
-
                 i++;
             }
 
-            Console.WriteLine(resultTable);
+            Console.WriteLine(resultTable); // prints the search results
 
-            Console.WriteLine("1. Order by price");
+            Console.WriteLine("1. Order by price");   //menu for choices after search
             Console.WriteLine("2. Order by rating");
             Console.WriteLine("3. Add room to booking");
             Console.WriteLine("4. Exit");
 
-            switch (Console.ReadKey(true).Key)
+            switch (Console.ReadKey(true).Key)          //Switch to handle user input.
             {
                 case ConsoleKey.D1:
-                    orderPriceOrRating = "price ASC, ";
-                    Thread.Sleep(1000);
+                    orderPriceOrRating = "price ASC, ";  //Changes query to sort for price (ascending)
                     break;
                 case ConsoleKey.D2:
-                    orderPriceOrRating = "rating DESC, ";
-                    Thread.Sleep(1000);
+                    orderPriceOrRating = "rating DESC, "; // Changes query to sort for rating (descending)
                     break;
                 case ConsoleKey.D3:
                     break;
@@ -286,10 +282,5 @@ public class Search(NpgsqlDataSource db)
                     break;
             }
         }
-    }
-
-    async Task ClearConsole()
-    {
-        Console.Clear();
     }
 }
