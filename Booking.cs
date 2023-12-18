@@ -10,6 +10,127 @@ namespace holidaymaker_group2;
 
 public class Booking(NpgsqlDataSource db)
 {
+
+    public async Task Cancel()
+    {
+        await using (var cmd = db.CreateCommand())
+        {
+            bool menuCancel = false;
+            bool cancel = false;
+
+            while (!menuCancel)
+            {
+                Console.WriteLine("1. Cancel a booking");
+                Console.WriteLine("2. Return to booking menu");
+                int? menuInput = Convert.ToInt32(Console.ReadLine());
+                switch (menuInput)
+                {
+                    case 1:
+                        Console.Clear();
+                        menuCancel = true;
+                        break;
+                    case 2:
+                        menuCancel = true;
+                        cancel = true;
+                        break;
+                    default:
+                        Console.Clear();
+                        Console.WriteLine("Invalid input, please choose either 1 or 2.\n");
+                        break;
+                }
+            }
+
+            bool finalCancel = true;
+            int bookingID = 0;
+
+            while (!cancel)
+            {
+
+                Console.Write("Enter Booking number: ");
+                string BN = Console.ReadLine();
+
+                bool checkNumber = true;
+
+                while (checkNumber)
+                {
+                    int count = 0;
+
+                    string qSearchBookingNumber = @$"
+                    SELECT COUNT(*)
+                    FROM bookings b
+                    WHERE b.number = {BN}
+                ";
+
+                    var reader = await db.CreateCommand(qSearchBookingNumber).ExecuteReaderAsync();
+
+                    while (await reader.ReadAsync())
+                    {
+                        count = reader.GetInt32(0);
+                    }
+
+                    if (count == 1)
+                    {
+                        var qShowBooking = @$"
+                            SELECT *
+                            FROM bookings b
+                            WHERE b.number = {BN}";
+
+                        var reader2 = await db.CreateCommand(qShowBooking).ExecuteReaderAsync();
+
+                        while (await reader2.ReadAsync())
+                        {
+                            bookingID = reader2.GetInt32(0);
+                            Console.WriteLine("\nBooking details:\n" + "\nBooking number: " + reader2.GetInt32(1) + "\nCustomer ID: " + reader2.GetInt32(2) + "\nRoom ID: " + reader2.GetInt32(3) +
+                                "\nStart date: " + reader2.GetDateTime(4) + "\nEnd date: " + reader2.GetDateTime(5));
+                        }
+                        cancel = true;
+                        finalCancel = true;
+                        break;
+                    }
+                    else
+                    {
+                        Console.Clear();
+                        Console.WriteLine($"Booking number '{BN}' does not exist.");
+                        finalCancel = false;
+                        break;
+                    }
+                }
+
+                Console.WriteLine();
+
+                while (finalCancel)
+                {
+                    Console.WriteLine("Are you sure you want to cancel this booking? (Y/N)");
+                    string? input = Console.ReadLine().ToUpper();
+                    if (input == "Y")
+                    {
+                        cmd.CommandText = $"DELETE FROM bookings_to_add_ons ba WHERE ba.booking_id = {bookingID}";
+
+                        await cmd.ExecuteNonQueryAsync();
+
+                        cmd.CommandText = $"DELETE FROM bookings b WHERE b.number = {BN}";
+
+                        await cmd.ExecuteNonQueryAsync();
+
+                        Console.Clear();
+                        Console.WriteLine($"The booking ({BN}) has been deleted from the system.");
+                        break;
+                    }
+                    else if (input == "N")
+                    {
+                        Console.Clear();
+                        Console.WriteLine("The booking was not cancelled.\n");
+                        break;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Invalid input, please type either 'Y' or 'N'\n");
+                    }
+                }
+            }
+        }
+    }
+
     public async Task Create()
     {
         await using (var cmd = db.CreateCommand())
