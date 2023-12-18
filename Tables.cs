@@ -30,7 +30,7 @@ public class Tables(NpgsqlDataSource db)
             first_name      TEXT NOT NULL,
             last_name       TEXT NOT NULL,
             mail            TEXT NOT NULL,
-            phone           BIGINT NOT NULL,
+            phone           TEXT NOT NULL,
             date_of_birth   DATE NOT NULL,
             co_size         INTEGER NOT NULL
         )";
