@@ -121,21 +121,6 @@ public class Booking(NpgsqlDataSource db)
                     Console.Write("Type the number for the desired add-on: ");
                     int addOnInput = Convert.ToInt32(Console.ReadLine());
 
-                    if (addOnInput == 2 && addOnList.Contains(2))
-                    {
-                        Console.WriteLine("Can't order more than one half board.");
-                        Thread.Sleep(1200);
-                        addOns = false;
-                        break;
-                    }
-                    else if (addOnInput == 2 && addOnList.Contains(2))
-                    {
-                        Console.WriteLine("Can't order more than one full board.");
-                        Thread.Sleep(1200);
-                        addOns = false;
-                        break;
-                    }
-
                     switch (addOnInput)
                     {
                         case 1:
@@ -143,10 +128,22 @@ public class Booking(NpgsqlDataSource db)
                             addOnList2.Add("Extra bed");
                             break;
                         case 2:
+                            if (addOnList.Contains(2))
+                            {
+                                Console.Clear();
+                                Console.WriteLine("Can't order more than a half board per booking.\n");
+                                break;
+                            }
                             addOnList.Add(2);
                             addOnList2.Add("Half board");
                             break;
                         case 3:
+                            if (addOnList.Contains(3))
+                            {
+                                Console.Clear();
+                                Console.WriteLine("Can't order more than a full board per booking.\n");
+                                break;
+                            }
                             addOnList.Add(3);
                             addOnList2.Add("Full board");
                             break;
@@ -166,7 +163,6 @@ public class Booking(NpgsqlDataSource db)
                     Thread.Sleep(1500);
                     Console.Clear();
                 }
-
                 Console.Write("Does the customer want more add-ons? (Y/N): ");
             }
             while (!addOns);
