@@ -10,16 +10,17 @@ var tables = new Tables(db);
 
 await tables.CreateAll(); //SKa vi lägga in den i MainMeny - som val att skapa tables.
 
-/*
+
 Menu Menu = new Menu(db);
 await Menu.Main();
+/*
 var customer = new Customers(db);
 await customer.Reg();
 
 
 var displaycustomer = new Customers(db);
 await displaycustomer.DisplayCustomers();    
-*/
+*
 
 var search = new Search(db);
 Cart cart = await search.AvailableRooms();
@@ -31,4 +32,6 @@ foreach (int item in cart.Rooms)
 {
     Console.WriteLine(item);
 }
+
+*/
 

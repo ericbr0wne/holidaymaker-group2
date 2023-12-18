@@ -23,6 +23,7 @@ public class Menu(NpgsqlDataSource db)
 
     async public Task Main()
     {
+        Cart? cart;
 
 
         Type menu = Type.Main;
@@ -167,6 +168,8 @@ public class Menu(NpgsqlDataSource db)
                 {
                     case "1":
                         //Search.Rooms();
+                        var search = new Search(db);
+                        cart = await search.AvailableRooms();
                         break;
                     case "2":
                         //Search.Locations();
