@@ -59,7 +59,7 @@ public class Search(NpgsqlDataSource db)
                     if (eDate > sDate)
                     {
                         validInput = true;
-                        inputPromt = $"{inputPromt}\n{endDate}\nChoose requirements (y/n)";
+                        inputPromt = $"{inputPromt}\n{endDate}\nMaximum distance from beach (leave empty if N/A): ";
                     }
                     else
                     {
@@ -80,16 +80,87 @@ public class Search(NpgsqlDataSource db)
             }
         } while (!validInput);
 
+        string beachDistance = string.Empty;
+        string centreDistance = string.Empty;
         string hasPool = string.Empty;
         string hasEveningEnternainment = string.Empty;            //strings to update search-query depending on selected requirements
         string hasRestaurant = string.Empty;
         string hasKidsClub = string.Empty;
 
+        string beachInput = string.Empty;
+        string centreInput = string.Empty;
         string poolInput = string.Empty;
         string entertainmentInput = string.Empty;               //strings to keep user input for console output
         string restaurantInput = string.Empty;
         string kidsClubInput = string.Empty;
 
+        do
+        {
+            validInput = false;
+            Console.Clear();
+            Console.WriteLine(inputPromt);
+            beachInput = Console.ReadLine() ?? string.Empty;
+            if (beachInput == string.Empty)
+            {
+                validInput = true;
+                beachInput = "N/A";
+                inputPromt = $"{inputPromt}{beachInput}\nCMaximum distance from city centre (leave empty if N/A): ";
+            }
+            else if (int.TryParse(beachInput, out int distance))
+            {
+                validInput = true;
+                inputPromt = $"{inputPromt}{beachInput}\nMaximum distance from city centre (leave empty if N/A): ";
+                beachDistance = @$"                                                                  
+	            INTERSECT               
+
+	            SELECT l.name, r.number, r.size, l.rating, l.beach_distance, l.centre_distance, r.price
+		        FROM rooms r
+	        	JOIN locations l USING (location_id)
+	           	WHERE l.beach_distance < {beachInput}
+                ";
+
+            }
+            else
+            {
+                Console.WriteLine("Invalid input");
+                Thread.Sleep(1000);
+            }
+
+        } while (!validInput);
+
+        do
+        {
+            validInput = false;
+            Console.Clear();
+            Console.WriteLine(inputPromt);
+            centreInput= Console.ReadLine() ?? string.Empty;
+            if (centreInput == string.Empty)
+            {
+                validInput = true;
+                centreInput = "N/A";
+                inputPromt = $"{inputPromt}{centreInput}\nChoose requirements (y/n)";
+            }
+            else if (int.TryParse(centreInput, out int distance))
+            {
+                validInput = true;
+                inputPromt = $"{inputPromt}{centreInput}\nChoose requirements (y/n)";
+                centreDistance = @$"                                                                  
+	            INTERSECT               
+
+	            SELECT l.name, r.number, r.size, l.rating, l.beach_distance, l.centre_distance, r.price
+		        FROM rooms r
+	        	JOIN locations l USING (location_id)
+	           	WHERE l.beach_distance < {centreInput}
+                ";
+
+            }
+            else
+            {
+                Console.WriteLine("Invalid input");
+                Thread.Sleep(1000);
+            }
+
+        } while (!validInput);
         do
         {
             validInput = false;
@@ -238,6 +309,8 @@ public class Search(NpgsqlDataSource db)
 		        SELECT b.room_id
 			    FROM bookings b
 			    WHERE (b.start_date, b.end_date) OVERLAPS (date '{startDate}', date '{endDate}'))
+            {beachDistance}
+            {centreDistance}
 		    {hasPool}
 		    {hasEveningEnternainment}
     		{hasRestaurant}
