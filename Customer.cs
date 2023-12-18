@@ -4,6 +4,7 @@ using System.ComponentModel.Design;
 using System.Data;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using System.Transactions;
 using System.Xml;
 using System.Xml.Linq;
@@ -12,7 +13,6 @@ namespace holidaymaker_group2;
 
 public class Customers(NpgsqlDataSource db)
 {
-
     public async Task Reg()
     {
         await using (var cmd = db.CreateCommand())
@@ -34,7 +34,7 @@ public class Customers(NpgsqlDataSource db)
                 }
             } while (string.IsNullOrEmpty(first_name));
 
-            string last_name = string.Empty; 
+            string last_name = string.Empty;
             do
             {
                 Console.Write("Enter last name: ");
@@ -51,7 +51,7 @@ public class Customers(NpgsqlDataSource db)
                 }
             } while (string.IsNullOrEmpty(last_name));
 
-            string mail = string.Empty; 
+            string mail = string.Empty;
             do
             {
                 Console.Write("Enter e-mail: ");
@@ -68,24 +68,55 @@ public class Customers(NpgsqlDataSource db)
                 }
             } while (string.IsNullOrEmpty(mail));
 
-            //behöver endast (x antal?)siffror annars loop 
-            Console.Write("Enter phone number: ");
-            string phone = Console.ReadLine();
-            Console.WriteLine("Phone number: " + phone);
-            Console.WriteLine();
+            string phone = string.Empty;
+            do
+            {
 
-            //behöver endast datum format annars loop
+                Console.Write("Enter phone number: ");
+                phone = Console.ReadLine();
+                if (!Regex.IsMatch(phone, @"^[0-9]+$"))
+                {
+                    Console.WriteLine("Please enter digits only.");
+                    Console.WriteLine();
+
+                }
+                else
+                {
+                    Console.WriteLine("Phone number: " + phone);
+                    Console.WriteLine();
+                }
+            } while (!Regex.IsMatch(phone, @"^[0-9]+$"));
+
+            //denna crashar om det inte är endast DateTime format
             Console.Write("Enter date of birth 'yyyy-mm-dd': ");
             string? stringDateOfBirth = Console.ReadLine();
             DateTime dateOfBirth = DateTime.Parse(stringDateOfBirth);
             Console.WriteLine("Date of birth: " + (dateOfBirth.ToShortDateString()));
             Console.WriteLine();
 
-            //behöver int mellan 1-15 annars loop. 
-            Console.Write("Enter company size: ");
-            string? stringCo_size = Console.ReadLine();
-            int co_size = int.Parse(stringCo_size);
-            Console.WriteLine("Company size: " + co_size);
+            int co_size;
+            do
+            {
+                Console.Write("Enter company size (between 1 and 15): ");
+                string stringCo_size = Console.ReadLine();
+
+                if (int.TryParse(stringCo_size, out co_size))
+                {
+                    if (co_size >= 1 && co_size <= 15)
+                    {
+                        Console.WriteLine("Company size: " + co_size);
+                        break;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Company size must be between 1 and 15.");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Please enter digits only.");
+                }
+            } while (!(co_size >= 1 && co_size <= 15));
 
             cmd.CommandText = "INSERT INTO customers (first_name, last_name, mail, phone, date_of_birth, co_size) VALUES ($1, $2, $3, $4, $5, $6)";
 
@@ -97,13 +128,11 @@ public class Customers(NpgsqlDataSource db)
             cmd.Parameters.AddWithValue(co_size);
 
             await cmd.ExecuteNonQueryAsync();
-
         }
     }
 
     public async Task DisplayCustomers()
     {
-
         var displayCustTable = new ConsoleTable("FirstName", "LastName", "E-mail", "Phone", "DateOfBirth", "CompanySize");
 
         await using (var cmd = db.CreateCommand("SELECT first_name, last_name, mail, phone, date_of_birth, co_size FROM customers"))
