@@ -25,7 +25,6 @@ public class Menu(NpgsqlDataSource db)
     {
         Cart? cart;
 
-
         Type menu = Type.Main;
 
         while (true)
@@ -85,13 +84,16 @@ public class Menu(NpgsqlDataSource db)
                 switch (Console.ReadLine())
                 {
                     case "1":
-                        //Customers.Reg(); 
+                        CustomerMgmt Cust = new CustomerMgmt(db);
+                        await Cust.Reg();
                         break;
                     case "2":
-                        //Customers.Edit();
+                        CustomerMgmt Cust2 = new CustomerMgmt(db);
+                        await Cust2.Edit(); 
                         break;
                     case "3":
-                        //Customers.Display();
+                        CustomerMgmt Cust3 = new CustomerMgmt(db);
+                        await Cust3.SelectAll();
                         break;
                     case "4":
                         menu = Type.Main;
@@ -154,42 +156,20 @@ public class Menu(NpgsqlDataSource db)
                 Console.Clear();
                 Console.WriteLine("*** Search ***");
                 Console.WriteLine();
-                Console.WriteLine("1. Rooms");
-                Console.WriteLine("2. Locations");
-                Console.WriteLine("3. Bookings");
-                Console.WriteLine("4. Customers");
-
-                Console.WriteLine("5. what else?");
-                Console.WriteLine("6. what else?");
-                Console.WriteLine("7. Return to Main menu");
-                Console.WriteLine("8. Exit HolidayMaker");
+                Console.WriteLine("1. Available rooms");
+                Console.WriteLine("2. Return to Main menu");
+                Console.WriteLine("3. Exit HolidayMaker");
 
                 switch (Console.ReadLine())
                 {
                     case "1":
-                        //Search.Rooms();
                         var search = new Search(db);
                         cart = await search.AvailableRooms();
                         break;
                     case "2":
-                        //Search.Locations();
-                        break;
-                    case "3":
-                        //Search.Bookings();
-                        break;
-                    case "4":
-                        //Search.Customers();
-                        break;
-                    case "5":
-                        //Search.?();
-                        break;
-                    case "6":
-                        //Search.?();
-                        break;
-                    case "7":
                         menu = Type.Main;
                         continue;
-                    case "8":
+                    case "3":
                         menu = Type.Exit;
                         break;
                     default:
@@ -202,24 +182,13 @@ public class Menu(NpgsqlDataSource db)
                 }
             }
 
-
             if (menu.Equals(Type.Exit))
             {
                 Console.Clear();
                 Console.WriteLine("The HolidayMaker has been shut down successfully.");
                 break;
             }
-
-
-
-
         }
-
-
-
-
-
-
     }
 
 }

@@ -88,6 +88,12 @@ namespace holidaymaker_group2
 
             while (true)
             {
+
+                //Because of bug where console.clear doesn't clear console window
+                for (int j = 0; j < 40; j++)
+                {
+                    Console.WriteLine();
+                }
                 Console.WriteLine(resultTable); 
                 Console.WriteLine("\n Booked Rooms");
                 Console.WriteLine(cartTable);
@@ -117,12 +123,6 @@ namespace holidaymaker_group2
                 {
                     Console.WriteLine("Invalid input!\n Make sure you did't try to add a room that's already added or isn't on the list");
                     Console.ReadKey();
-                }
-
-                //Because of bug where console.clear doesn't clear console window
-                for (int j = 0; j < 40; j++)
-                {
-                    Console.WriteLine();
                 }
             }
         }
