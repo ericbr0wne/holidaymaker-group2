@@ -9,7 +9,7 @@ await using var db = NpgsqlDataSource.Create(dbUri);
 
 var tables = new Tables(db);
 
-await tables.CreateAll(); //SKa vi lägga in den i MainMeny - som val att skapa tables.
+await tables.CreateAll();
 
 /*
 Menu Menu = new Menu(db);
