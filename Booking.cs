@@ -47,7 +47,7 @@ public class Booking(NpgsqlDataSource db)
             {
 
                 Console.Write("Enter Booking number: ");
-                string BN = Console.ReadLine();
+                int? BN = Convert.ToInt32(Console.ReadLine());
 
                 bool checkNumber = true;
 
@@ -140,8 +140,6 @@ public class Booking(NpgsqlDataSource db)
             string? customerName = string.Empty;
             bool foundCustomer = false;
 
-            // Gjorde en while-loop för att hitta kunden (för och efternamnet) som man söker på och skriva ut denna+customer_id
-            // sedan sparas customer_id i variabeln "customerNumber"
             while (!foundCustomer)
             {
                 Console.Write("Enter customer's first and last name: ");
@@ -158,10 +156,13 @@ public class Booking(NpgsqlDataSource db)
                 string qSearchCustomer = @$"
                     SELECT c.first_name, c.last_name, c.customer_id, c.co_size
                     FROM customers c
-                    WHERE c.first_name = '{customerNameSplit[0]}' AND c.last_name = '{customerNameSplit[1]}'
+                    WHERE c.first_name = $1 AND c.last_name = $2
                 ";
 
-                var reader = await db.CreateCommand(qSearchCustomer).ExecuteReaderAsync();
+                var query = db.CreateCommand(qSearchCustomer);
+                query.Parameters.AddWithValue(customerNameSplit[0]);
+                query.Parameters.AddWithValue(customerNameSplit[1]);
+                var reader = await query.ExecuteReaderAsync();
 
                 if (await reader.ReadAsync())
                 {
@@ -176,7 +177,6 @@ public class Booking(NpgsqlDataSource db)
                 }
             }
 
-            // Snodde den snygga try-catchen från Klas, men la till while-loopar så att man måste skriva korrekt datum
             string pattern = "yyyy-mm-dd";
             DateTime sDate;
             DateTime eDate;
@@ -220,7 +220,6 @@ public class Booking(NpgsqlDataSource db)
             }
             DateTime endDate = DateTime.Parse(stringEndDate);
 
-            // Min tanke kring room_id är att vi hämtar den från en sökning i en annan klass (så att det faktiskt är möjligt att boka rummet det datumet)
             Console.Write("\nEnter the room ID for this vacation: ");
             string? stringRoomID = Console.ReadLine();
             int roomID = int.Parse(stringRoomID);
@@ -288,56 +287,9 @@ public class Booking(NpgsqlDataSource db)
             }
             while (!addOns);
 
+            int bookingNumber = await GenerateNumber();
 
-            // Genererar bara ett random nummer för bokningen mellan 10 000 och 99 999
-            Random rnd = new Random();
-            int bookingNumber = rnd.Next(10000, 99999);
-
-            bool checkNumber = true;
-
-            // Kollar så att bokningsnumret inte är en dubblett, om det är så kommer den att generera ett nytt nummer
-            while (checkNumber)
-            {
-                int count = 0;
-
-                string qSearchBookingNumber = @$"
-                    SELECT COUNT(*)
-                    FROM bookings b
-                    WHERE b.number = {bookingNumber}
-                ";
-
-                var reader = await db.CreateCommand(qSearchBookingNumber).ExecuteReaderAsync();
-
-                while (await reader.ReadAsync())
-                {
-                    count = reader.GetInt32(0);
-                }
-
-                if (count == 1)
-                {
-                    bookingNumber = rnd.Next(10000, 99999);
-                }
-                else
-                {
-                    checkNumber = false;
-                }
-            }
-
-            string locationName = string.Empty;
-
-            string qSearchLocation = @$"
-                    SELECT l.name
-                    FROM locations l
-                    JOIN rooms r ON l.location_id = r.location_id
-                    WHERE r.room_id = {roomID}
-            ";
-
-            var reader2 = await db.CreateCommand(qSearchLocation).ExecuteReaderAsync();
-
-            while (await reader2.ReadAsync())
-            {
-                locationName = reader2.GetString(0);
-            }
+            string locationName = await FindLocationName(roomID);
 
             Console.Clear();
             Console.WriteLine("Booking details\n\nCustomer name: " + customerName + "\nCustomer ID: " + customerNumber + "\nCompany size: " + companySize + "\nRoom ID: " + roomID +
@@ -366,27 +318,105 @@ public class Booking(NpgsqlDataSource db)
             Console.WriteLine("The booking was successful!\n");
             Console.WriteLine("Booking number: " + bookingNumber);
 
+            await InsertAddon(customerNumber, addOnList);
+        }
+    }
 
+    public async Task <int> GenerateNumber()
+    {
+        await using (var cmd = db.CreateCommand())
+        {
+            Random rnd = new Random();
+            int bookingNumber = rnd.Next(10000, 99999);
+
+            bool checkNumber = true;
+
+            while (checkNumber)
+            {
+                int count = 0;
+
+                string qSearchBookingNumber = @$"
+                    SELECT COUNT(*)
+                    FROM bookings b
+                    WHERE b.number = $1
+                ";
+
+                var query = db.CreateCommand(qSearchBookingNumber);
+                query.Parameters.AddWithValue(bookingNumber);
+                var reader = await query.ExecuteReaderAsync();
+
+                while (await reader.ReadAsync())
+                {
+                    count = reader.GetInt32(0);
+                }
+
+                if (count == 1)
+                {
+                    bookingNumber = rnd.Next(10000, 99999);
+                }
+                else
+                {
+                    checkNumber = false;
+                }
+            }
+            return bookingNumber;
+        }
+    }
+
+    public async Task<string> FindLocationName(int roomID)
+    {
+        await using (var cmd = db.CreateCommand())
+        {
+            string locationName = string.Empty;
+
+            string qSearchLocation = @$"
+                    SELECT l.name
+                    FROM locations l
+                    JOIN rooms r ON l.location_id = r.location_id
+                    WHERE r.room_id = $1
+            ";
+
+            var query = db.CreateCommand(qSearchLocation);
+            query.Parameters.AddWithValue(roomID);
+            var reader = await query.ExecuteReaderAsync();
+
+            while (await reader.ReadAsync())
+            {
+                locationName = reader.GetString(0);
+            }
+            return locationName;
+        }
+    }
+
+    public async Task InsertAddon(int cusNum, List<int> addOns)
+    {
+        await using (var cmd = db.CreateCommand())
+        {
             int bookingID = 0;
 
             string qFindBookingID = @$"
                     SELECT MAX(b.booking_id)
                     FROM bookings b
-                    WHERE b.customer_id = {customerNumber}
+                    WHERE b.customer_id = $1
                 ";
 
-            var reader3 = await db.CreateCommand(qFindBookingID).ExecuteReaderAsync();
+            var query = db.CreateCommand(qFindBookingID);
+            query.Parameters.AddWithValue(cusNum);
+            var reader = await query.ExecuteReaderAsync();
 
-            while (reader3.Read())
+            while (reader.Read())
             {
-                bookingID = reader3.GetInt32(0);
+                bookingID = reader.GetInt32(0);
             }
 
-            foreach (var item in addOnList)
-            {
-                cmd.CommandText = $"INSERT INTO bookings_to_add_ons (booking_id, add_on_id) VALUES ({bookingID}, {item})";
+            cmd.CommandText = "INSERT INTO bookings_to_add_ons (booking_id, add_on_id) values ($1, $2)";
 
+            foreach (var item in addOns)
+            {
+                cmd.Parameters.AddWithValue(bookingID);
+                cmd.Parameters.AddWithValue(item);
                 await cmd.ExecuteNonQueryAsync();
+                cmd.Parameters.Clear();
             }
         }
     }
