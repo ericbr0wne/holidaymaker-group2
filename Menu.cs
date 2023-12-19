@@ -38,26 +38,26 @@ public class Menu(NpgsqlDataSource db)
                 Console.WriteLine("| 1. Customers                             |");
                 Console.WriteLine("| 2. Bookings                              |");
                 Console.WriteLine("| 3. Search                                |");
-                Console.WriteLine("| 4. Exit                                  |");
+                Console.WriteLine("| 0. Exit                                  |");
                 Console.WriteLine("|------------------------------------------|");
             }
 
 
             if (menu.Equals(Type.Main))
             {
-                string? input = Console.ReadLine();
-                switch (input)
+                ConsoleKeyInfo input = Console.ReadKey(true);
+                switch (input.Key)
                 {
-                    case "1":
+                    case ConsoleKey.D1:
                         menu = Type.Customers;
                         break;
-                    case "2":
+                    case ConsoleKey.D2:
                         menu = Type.Bookings;
                         break;
-                    case "3":
+                    case ConsoleKey.D3:
                         menu = Type.Search;
                         break;
-                    case "4":
+                    case ConsoleKey.D0:
                         menu = Type.Exit;
                         break;
                     default:
@@ -79,26 +79,26 @@ public class Menu(NpgsqlDataSource db)
                 Console.WriteLine("2. Edit");
                 Console.WriteLine("3. Display All");
                 Console.WriteLine("4. Return to Main menu");
-                Console.WriteLine("5. Exit HolidayMaker");
+                Console.WriteLine("0. Exit HolidayMaker");
 
-                switch (Console.ReadLine())
+                switch (Console.ReadKey().Key)
                 {
-                    case "1":
+                    case ConsoleKey.D1:
                         CustomerMgmt Cust = new CustomerMgmt(db);
                         await Cust.Reg();
                         break;
-                    case "2":
+                    case ConsoleKey.D2:
                         CustomerMgmt Cust2 = new CustomerMgmt(db);
                         await Cust2.Edit(); 
                         break;
-                    case "3":
+                    case ConsoleKey.D3:
                         CustomerMgmt Cust3 = new CustomerMgmt(db);
                         await Cust3.SelectAll();
                         break;
-                    case "4":
+                    case ConsoleKey.D4:
                         menu = Type.Main;
                         continue;
-                    case "5":
+                    case ConsoleKey.D0:
                         menu = Type.Exit;
                         break;
                     default:
@@ -121,23 +121,23 @@ public class Menu(NpgsqlDataSource db)
                 Console.WriteLine("2. Edit");
                 Console.WriteLine("3. Delete");
                 Console.WriteLine("4. Return to Main menu");
-                Console.WriteLine("5. Exit HolidayMaker");
+                Console.WriteLine("0. Exit HolidayMaker");
 
-                switch (Console.ReadLine())
+                switch (Console.ReadKey().Key)
                 {
-                    case "1":
+                    case ConsoleKey.D1:
                         //Bookings.Create();
                         break;
-                    case "2":
+                    case ConsoleKey.D2:
                         //Bookings.Edit();
                         break;
-                    case "3":
+                    case ConsoleKey.D3:
                         //Bookings.Delete();
                         break;
-                    case "4":
+                    case ConsoleKey.D4:
                         menu = Type.Main;
                         continue;
-                    case "5":
+                    case ConsoleKey.D0:
                         menu = Type.Exit;
                         break;
                     default:
@@ -158,18 +158,26 @@ public class Menu(NpgsqlDataSource db)
                 Console.WriteLine();
                 Console.WriteLine("1. Available rooms");
                 Console.WriteLine("2. Return to Main menu");
-                Console.WriteLine("3. Exit HolidayMaker");
+                Console.WriteLine("0. Exit HolidayMaker");
 
-                switch (Console.ReadLine())
+                switch (Console.ReadKey().Key)
                 {
-                    case "1":
+                    case ConsoleKey.D1:
                         var search = new Search(db);
                         cart = await search.AvailableRooms();
-                        break;
-                    case "2":
+                        if (cart != null)
+                        {
+                            menu = Type.Bookings;
+                            continue;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    case ConsoleKey.D2:
                         menu = Type.Main;
                         continue;
-                    case "3":
+                    case ConsoleKey.D3:
                         menu = Type.Exit;
                         break;
                     default:
