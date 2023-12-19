@@ -11,7 +11,7 @@ using System.Xml.Linq;
 namespace holidaymaker_group2;
 
 
-public class Customers(NpgsqlDataSource db)
+public class CustomerMgmt(NpgsqlDataSource db)
 {
     public async Task Reg()
     {
@@ -20,6 +20,9 @@ public class Customers(NpgsqlDataSource db)
             string first_name = string.Empty;
             do
             {
+                Console.Clear();
+                Console.WriteLine("*** Register Customer ***");
+                Console.WriteLine();
                 Console.Write("Enter first name: ");
                 first_name = Console.ReadLine();
 
@@ -131,7 +134,72 @@ public class Customers(NpgsqlDataSource db)
         }
     }
 
-    public async Task DisplayCustomers()
+    public async Task Edit()
+    {
+        await using (var cmd = db.CreateCommand())
+        {
+            Console.Clear();
+            Console.WriteLine("*** Edit Customer ***");
+            Console.WriteLine();
+            Console.WriteLine("Enter the date of birth to find customer Format yyyy-mm-dd: ");
+            string DOB = Console.ReadLine();
+
+            Console.WriteLine("Enter Firstname: (Tap enter to keep old value)");
+            string NewFirstName = Console.ReadLine();
+            Console.WriteLine("Enter Lastname (Tap enter to keep old value)");
+            string NewLastName = Console.ReadLine();
+            Console.WriteLine("Enter Email (Tap enter to keep old value)");
+            string NewMail = Console.ReadLine();
+            Console.WriteLine("Enter Phonenumber (Tap enter to keep old value)");
+            string NewPhone = Console.ReadLine();
+            Console.WriteLine("Enter birth of date (Tap enter to keep old value)");
+            string NewDob = Console.ReadLine();
+            Console.WriteLine("Enter CO Size(Tap enter to keep old value)");
+            string NewCoSize = Console.ReadLine();
+
+            string setClause = "SET ";
+            if (!string.IsNullOrEmpty(NewFirstName))
+            {
+                setClause += $"first_name='{NewFirstName}', ";
+            }
+
+            if (!string.IsNullOrEmpty(NewLastName))
+            {
+                setClause += $"last_name='{NewLastName}', ";
+            }
+
+            if (!string.IsNullOrEmpty(NewMail))
+            {
+                setClause += $"mail='{NewMail}', ";
+            }
+
+            if (!string.IsNullOrEmpty(NewPhone))
+            {
+                setClause += $"phone='{NewPhone}', ";
+            }
+
+            if (!string.IsNullOrEmpty(NewDob))
+            {
+                setClause += $"date_of_birth='{NewDob}', ";
+            }
+
+            if (!string.IsNullOrEmpty(NewCoSize))
+            {
+                setClause += $"co_size='{NewCoSize}', ";
+            }
+
+            if (setClause.EndsWith(", "))
+            {
+                setClause = setClause.Substring(0, setClause.Length - 2);
+            }
+
+            cmd.CommandText = $"UPDATE customers {setClause} WHERE date_of_birth = '{DOB}'";
+
+            await cmd.ExecuteNonQueryAsync();
+        }
+    }
+
+    public async Task SelectAll()
     {
         var displayCustTable = new ConsoleTable("FirstName", "LastName", "E-mail", "Phone", "DateOfBirth", "CompanySize");
 
@@ -144,6 +212,8 @@ public class Customers(NpgsqlDataSource db)
             }
 
             Console.Write(displayCustTable);
+            Console.ReadKey();
+            Console.WriteLine("Press any key to go back to customer menu.");
         }
     }
 
