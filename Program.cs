@@ -8,8 +8,6 @@ const string dbUri = "Host=localhost;Port=5455;Username=postgres;Password=postgr
 await using var db = NpgsqlDataSource.Create(dbUri);
 
 var tables = new Tables(db);
-
 await tables.CreateAll();
-
 Menu Menu = new Menu(db);
 await Menu.Main();

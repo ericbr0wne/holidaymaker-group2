@@ -476,7 +476,7 @@ public class Booking(NpgsqlDataSource db)
     }
 
 
-    public async Task EditBooking()
+    public async Task Edit()
     {
 
         await using (var cmd = db.CreateCommand())

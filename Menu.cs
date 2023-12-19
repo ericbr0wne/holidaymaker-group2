@@ -13,7 +13,7 @@ public class Menu(NpgsqlDataSource db)
 
 {
     Cart? cart;
-    private enum Type 
+    private enum Type
     {
         Main,
         Customers,
@@ -24,7 +24,9 @@ public class Menu(NpgsqlDataSource db)
 
     async public Task Main()
     {
-        
+        var booking = new Booking(db);
+        var customerManagment = new CustomerMgmt(db);
+        var search = new Search(db);
 
         Type menu = Type.Main;
 
@@ -85,16 +87,13 @@ public class Menu(NpgsqlDataSource db)
                 switch (Console.ReadKey().Key)
                 {
                     case ConsoleKey.D1:
-                        CustomerMgmt Cust = new CustomerMgmt(db);
-                        await Cust.Reg();
+                        await customerManagment.Reg();
                         break;
                     case ConsoleKey.D2:
-                        CustomerMgmt Cust2 = new CustomerMgmt(db);
-                        await Cust2.Edit(); 
+                        await customerManagment.Edit();
                         break;
                     case ConsoleKey.D3:
-                        CustomerMgmt Cust3 = new CustomerMgmt(db);
-                        await Cust3.SelectAll();
+                        await customerManagment.SelectAll();
                         break;
                     case ConsoleKey.D4:
                         menu = Type.Main;
@@ -120,20 +119,20 @@ public class Menu(NpgsqlDataSource db)
                 Console.WriteLine();
                 Console.WriteLine("1. Create");
                 Console.WriteLine("2. Edit");
-                Console.WriteLine("3. Delete");
+                Console.WriteLine("3. Cancel booking");
                 Console.WriteLine("4. Return to Main menu");
                 Console.WriteLine("0. Exit HolidayMaker");
 
                 switch (Console.ReadKey().Key)
                 {
                     case ConsoleKey.D1:
-                        //Bookings.Create();
+                        await booking.Create(cart);
                         break;
                     case ConsoleKey.D2:
-                        //Bookings.Edit();
+                        await booking.Edit();
                         break;
                     case ConsoleKey.D3:
-                        //Bookings.Delete();
+                        await booking.Cancel();
                         break;
                     case ConsoleKey.D4:
                         menu = Type.Main;
@@ -164,7 +163,6 @@ public class Menu(NpgsqlDataSource db)
                 switch (Console.ReadKey().Key)
                 {
                     case ConsoleKey.D1:
-                        var search = new Search(db);
                         cart = await search.AvailableRooms();
                         if (cart != null)
                         {
