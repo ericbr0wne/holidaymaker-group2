@@ -69,7 +69,7 @@ public class Booking(NpgsqlDataSource db)
                         count = reader.GetInt32(0);
                     }
 
-                    if (count == 1)
+                    if (count > 0)
                     {
                         var qShowBooking = @$"
                             SELECT *
@@ -82,7 +82,7 @@ public class Booking(NpgsqlDataSource db)
                         {
                             bookingID = reader2.GetInt32(0);
                             Console.WriteLine("\nBooking details:\n" + "\nBooking number: " + reader2.GetInt32(1) + "\nCustomer ID: " + reader2.GetInt32(2) + "\nRoom ID: " + reader2.GetInt32(3) +
-                                "\nStart date: " + reader2.GetDateTime(4) + "\nEnd date: " + reader2.GetDateTime(5));
+                                "\nStart date: " + reader2.GetDateTime(4).ToShortDateString() + "\nEnd date: " + reader2.GetDateTime(5).ToShortDateString());
                         }
                         cancel = true;
                         finalCancel = true;
