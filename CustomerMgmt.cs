@@ -15,13 +15,14 @@ public class CustomerMgmt(NpgsqlDataSource db)
 {
     public async Task Reg()
     {
+
         await using (var cmd = db.CreateCommand())
         {
             string first_name = string.Empty;
+                    Console.Clear();
+                Console.WriteLine("*** Register Customer ***");
             do
             {
-                Console.Clear();
-                Console.WriteLine("*** Register Customer ***");
                 Console.WriteLine();
                 Console.Write("Enter first name: ");
                 first_name = Console.ReadLine();
@@ -29,6 +30,8 @@ public class CustomerMgmt(NpgsqlDataSource db)
                 if (string.IsNullOrEmpty(first_name))
                 {
                     Console.WriteLine("Please enter first name.");
+                    Console.WriteLine();
+
                 }
                 else
                 {
@@ -46,6 +49,8 @@ public class CustomerMgmt(NpgsqlDataSource db)
                 if (string.IsNullOrEmpty(last_name))
                 {
                     Console.WriteLine("Please enter last name.");
+                    Console.WriteLine();
+
                 }
                 else
                 {
@@ -63,6 +68,8 @@ public class CustomerMgmt(NpgsqlDataSource db)
                 if (string.IsNullOrEmpty(mail))
                 {
                     Console.WriteLine("Please enter e-mail.");
+                    Console.WriteLine();
+
                 }
                 else
                 {
@@ -90,14 +97,33 @@ public class CustomerMgmt(NpgsqlDataSource db)
                 }
             } while (!Regex.IsMatch(phone, @"^[0-9]+$"));
 
-            //denna crashar om det inte är endast DateTime format
-            Console.Write("Enter date of birth 'yyyy-mm-dd': ");
-            string? stringDateOfBirth = Console.ReadLine();
-            DateTime dateOfBirth = DateTime.Parse(stringDateOfBirth);
-            Console.WriteLine("Date of birth: " + (dateOfBirth.ToShortDateString()));
-            Console.WriteLine();
+            string pattern = "yyyy-MM-dd";
+            DateTime dateOfBirth;
+            bool validInput = false;
 
-            int co_size;
+            do
+            {
+                Console.Write("Enter date of birth 'yyyy-mm-dd': ");
+                string? stringDateOfBirth = Console.ReadLine();
+
+                validInput = DateTime.TryParseExact(stringDateOfBirth, pattern, null, System.Globalization.DateTimeStyles.None, out dateOfBirth);
+
+                if (validInput)
+                {
+                    Console.WriteLine("Date of birth: " + dateOfBirth.ToShortDateString());
+                    Console.WriteLine();
+                }
+                else
+                {
+                    Console.WriteLine("Please enter the correct format 'yyyy-mm-dd'");
+                    Console.WriteLine();
+                }
+            } while (!validInput);
+        
+    
+
+
+    int co_size;
             do
             {
                 Console.Write("Enter company size (between 1 and 15): ");
@@ -108,16 +134,21 @@ public class CustomerMgmt(NpgsqlDataSource db)
                     if (co_size >= 1 && co_size <= 15)
                     {
                         Console.WriteLine("Company size: " + co_size);
+                        Console.WriteLine();
                         break;
                     }
                     else
                     {
                         Console.WriteLine("Company size must be between 1 and 15.");
+                        Console.WriteLine();
+
                     }
                 }
                 else
                 {
                     Console.WriteLine("Please enter digits only.");
+                    Console.WriteLine();
+
                 }
             } while (!(co_size >= 1 && co_size <= 15));
 
@@ -133,6 +164,7 @@ public class CustomerMgmt(NpgsqlDataSource db)
             await cmd.ExecuteNonQueryAsync();
         }
     }
+
 
     public async Task Edit()
     {
@@ -216,10 +248,9 @@ public class CustomerMgmt(NpgsqlDataSource db)
             Console.WriteLine("Press any key to go back to customer menu.");
         }
     }
-
-
-
-
 }
+
+
+
 
 
