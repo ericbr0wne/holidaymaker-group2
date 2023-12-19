@@ -345,7 +345,7 @@ public class Search(NpgsqlDataSource db)
                     break;
                 case ConsoleKey.D3:
                     var booking = new Booking(db);
-                    Cart cart = await booking.AddToCart(sDate, eDate, qSearchRooms);
+                    Cart cart = await booking.AddToCart(startDate, endDate, qSearchRooms);
                     if (cart != null)
                     {
                         return cart;

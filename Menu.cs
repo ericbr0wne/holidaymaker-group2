@@ -12,6 +12,7 @@ namespace holidaymaker_group2;
 public class Menu(NpgsqlDataSource db)
 
 {
+    Cart? cart;
     private enum Type 
     {
         Main,
@@ -23,7 +24,7 @@ public class Menu(NpgsqlDataSource db)
 
     async public Task Main()
     {
-        Cart? cart;
+        
 
         Type menu = Type.Main;
 
