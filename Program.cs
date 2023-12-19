@@ -1,4 +1,5 @@
-﻿using holidaymaker_group2;
+﻿using ConsoleTables;
+using holidaymaker_group2;
 using Npgsql;
 using System.Data;
 
@@ -10,5 +11,15 @@ var tables = new Tables(db);
 
 await tables.CreateAll();
 
+/*
 Menu Menu = new Menu(db);
 await Menu.Main();
+var customer = new Customers(db);
+await customer.Reg();
+
+
+var displaycustomer = new Customers(db);
+await displaycustomer.DisplayCustomers();    
+*/
+var search = new Search(db);
+await search.AvailableRooms();

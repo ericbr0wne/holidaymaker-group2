@@ -23,8 +23,6 @@ public class Menu(NpgsqlDataSource db)
 
     async public Task Main()
     {
-
-
         Type menu = Type.Main;
 
         while (true)
@@ -170,6 +168,8 @@ public class Menu(NpgsqlDataSource db)
                 {
                     case "1":
                         //Search.Rooms();
+                        var search = new Search(db);
+                        await search.AvailableRooms();
                         break;
                     case "2":
                         //Search.Locations();
