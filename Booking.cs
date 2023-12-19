@@ -16,6 +16,7 @@ public class Booking(NpgsqlDataSource db)
     {
         await using (var cmd = db.CreateCommand())
         {
+            Console.Clear();
             bool menuCancel = false;
             bool cancel = false;
 
@@ -23,14 +24,13 @@ public class Booking(NpgsqlDataSource db)
             {
                 Console.WriteLine("1. Cancel a booking");
                 Console.WriteLine("2. Return to booking menu");
-                int? menuInput = Convert.ToInt32(Console.ReadLine());
-                switch (menuInput)
+                switch (Console.ReadKey(true).Key)
                 {
-                    case 1:
+                    case ConsoleKey.D1:
                         Console.Clear();
                         menuCancel = true;
                         break;
-                    case 2:
+                    case ConsoleKey.D2:
                         menuCancel = true;
                         cancel = true;
                         break;
@@ -69,7 +69,7 @@ public class Booking(NpgsqlDataSource db)
                         count = reader.GetInt32(0);
                     }
 
-                    if (count == 1)
+                    if (count > 0)
                     {
                         var qShowBooking = @$"
                             SELECT *
@@ -82,7 +82,7 @@ public class Booking(NpgsqlDataSource db)
                         {
                             bookingID = reader2.GetInt32(0);
                             Console.WriteLine("\nBooking details:\n" + "\nBooking number: " + reader2.GetInt32(1) + "\nCustomer ID: " + reader2.GetInt32(2) + "\nRoom ID: " + reader2.GetInt32(3) +
-                                "\nStart date: " + reader2.GetDateTime(4) + "\nEnd date: " + reader2.GetDateTime(5));
+                                "\nStart date: " + reader2.GetDateTime(4).ToShortDateString() + "\nEnd date: " + reader2.GetDateTime(5).ToShortDateString());
                         }
                         cancel = true;
                         finalCancel = true;
@@ -136,6 +136,7 @@ public class Booking(NpgsqlDataSource db)
     {
         await using (var cmd = db.CreateCommand())
         {
+            Console.Clear();
             int customerNumber = 0;
             int companySize = 0;
             string? customerName = string.Empty;
