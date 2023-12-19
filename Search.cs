@@ -5,19 +5,19 @@ namespace holidaymaker_group2;
 
 public class Search(NpgsqlDataSource db)
 {
-    public async Task AvailableRooms()
+    public async Task<Cart> AvailableRooms()
     {
-        string pattern = "yyyy-MM-dd";                  
+        string pattern = "yyyy-MM-dd";
         var startOfSeason = new DateTime(2022, 05, 31);
         var endOfSeason = new DateTime(2022, 08, 01);
-        DateTime sDate = new DateTime();               
+        DateTime sDate = new DateTime();
         DateTime eDate = new DateTime();
 
         string? startDate = string.Empty;
         string? endDate = string.Empty;
 
-        string inputPromt = "Please enter start day of booking ('yyyy-mm-dd')";  
-        bool validInput = false;                      
+        string inputPromt = "Please enter start day of booking ('yyyy-mm-dd')";
+        bool validInput = false;
         do
         {
             Console.Clear();
@@ -25,11 +25,11 @@ public class Search(NpgsqlDataSource db)
             startDate = Console.ReadLine() ?? string.Empty;
             try
             {
-                sDate = DateTime.ParseExact(startDate, pattern, null);     
-                if (sDate > startOfSeason && sDate < endOfSeason)           
+                sDate = DateTime.ParseExact(startDate, pattern, null);
+                if (sDate > startOfSeason && sDate < endOfSeason)
                 {
                     validInput = true;
-                    inputPromt = $"{inputPromt}\n{startDate}\nPlease enter end date of booking ('yyyy-mm-dd')"; 
+                    inputPromt = $"{inputPromt}\n{startDate}\nPlease enter end date of booking ('yyyy-mm-dd')";
                 }
                 else
                 {
@@ -82,14 +82,14 @@ public class Search(NpgsqlDataSource db)
         string beachDistance = string.Empty;
         string centreDistance = string.Empty;
         string hasPool = string.Empty;
-        string hasEveningEnternainment = string.Empty;       
+        string hasEveningEnternainment = string.Empty;
         string hasRestaurant = string.Empty;
         string hasKidsClub = string.Empty;
 
         string beachInput = string.Empty;
         string centreInput = string.Empty;
         string poolInput = string.Empty;
-        string entertainmentInput = string.Empty;             
+        string entertainmentInput = string.Empty;
         string restaurantInput = string.Empty;
         string kidsClubInput = string.Empty;
 
@@ -112,7 +112,7 @@ public class Search(NpgsqlDataSource db)
                 beachDistance = @$"                                                                  
 	            INTERSECT               
 
-	            SELECT l.name, r.number, r.size, l.rating, l.beach_distance, l.centre_distance, r.price
+	            SELECT l.name, r.number, r.size, l.rating, l.beach_distance, l.centre_distance, r.price, r.room_id
 		        FROM rooms r
 	        	JOIN locations l USING (location_id)
 	           	WHERE l.beach_distance < {beachInput}
@@ -132,7 +132,7 @@ public class Search(NpgsqlDataSource db)
             validInput = false;
             Console.Clear();
             Console.WriteLine(inputPromt);
-            centreInput= Console.ReadLine() ?? string.Empty;
+            centreInput = Console.ReadLine() ?? string.Empty;
             if (centreInput == string.Empty)
             {
                 validInput = true;
@@ -146,7 +146,7 @@ public class Search(NpgsqlDataSource db)
                 centreDistance = @$"                                                                  
 	            INTERSECT               
 
-	            SELECT l.name, r.number, r.size, l.rating, l.beach_distance, l.centre_distance, r.price
+	            SELECT l.name, r.number, r.size, l.rating, l.beach_distance, l.centre_distance, r.price, r.room_id
 		        FROM rooms r
 	        	JOIN locations l USING (location_id)
 	           	WHERE l.beach_distance < {centreInput}
@@ -170,11 +170,11 @@ public class Search(NpgsqlDataSource db)
             if (poolInput is "y" or "Y")
             {
                 inputPromt = $"{inputPromt}\nPool: {poolInput}";
-                validInput = true;                                  
+                validInput = true;
                 hasPool = @"                                                                  
 	            INTERSECT               
 
-	            SELECT l.name, r.number, r.size, l.rating, l.beach_distance, l.centre_distance, r.price
+	            SELECT l.name, r.number, r.size, l.rating, l.beach_distance, l.centre_distance, r.price, r.room_id
 		        FROM rooms r
 	        	JOIN locations l USING (location_id)
 		        JOIN locations_to_facilities ltf USING (location_id)
@@ -203,11 +203,11 @@ public class Search(NpgsqlDataSource db)
             if (entertainmentInput is "y" or "Y")
             {
                 inputPromt = $"{inputPromt}\nEvening entertainment: {entertainmentInput}";
-                validInput = true;                                                                                     
+                validInput = true;
                 hasEveningEnternainment = @"
             	INTERSECT
 
-            	SELECT l.name, r.number, r.size, l.rating, l.beach_distance, l.centre_distance, r.price
+            	SELECT l.name, r.number, r.size, l.rating, l.beach_distance, l.centre_distance, r.price, r.room_id
 	        	FROM rooms r
 	        	JOIN locations l USING (location_id)
 		        JOIN locations_to_facilities ltf USING (location_id)
@@ -236,11 +236,11 @@ public class Search(NpgsqlDataSource db)
             if (restaurantInput is "y" or "Y")
             {
                 inputPromt = $"{inputPromt}\nRestaurant: {restaurantInput}";
-                validInput = true;                               
+                validInput = true;
                 hasRestaurant = @"
 	            INTERSECT
 
-	            SELECT l.name, r.number, r.size, l.rating, l.beach_distance, l.centre_distance, r.price
+	            SELECT l.name, r.number, r.size, l.rating, l.beach_distance, l.centre_distance, r.price, r.room_id
 		        FROM rooms r
         		JOIN locations l USING (location_id)
 	        	JOIN locations_to_facilities ltf USING (location_id)
@@ -269,11 +269,11 @@ public class Search(NpgsqlDataSource db)
             if (kidsClubInput is "y" or "Y")
             {
                 inputPromt = $"{inputPromt}\nKids club: {kidsClubInput}";
-                validInput = true;                                    
+                validInput = true;
                 hasKidsClub = @"
 	            INTERSECT
 
-	            SELECT l.name, r.number, r.size, l.rating, l.beach_distance, l.centre_distance, r.price
+	            SELECT l.name, r.number, r.size, l.rating, l.beach_distance, l.centre_distance, r.price, r.room_id
 	        	FROM rooms r
 		        JOIN locations l USING (location_id)
         		JOIN locations_to_facilities ltf USING (location_id)
@@ -298,9 +298,9 @@ public class Search(NpgsqlDataSource db)
 
         while (true)
         {
-                                            
+
             string qSearchRooms = @$"
-	        SELECT l.name, r.number, r.size, l.rating, l.beach_distance, l.centre_distance, r.price
+	        SELECT l.name, r.number, r.size, l.rating, l.beach_distance, l.centre_distance, r.price, r.room_id
 	        FROM rooms r
 		    JOIN locations l USING (location_id)
 		    WHERE r.room_id NOT IN(
@@ -318,11 +318,11 @@ public class Search(NpgsqlDataSource db)
 
             var reader = await db.CreateCommand(qSearchRooms).ExecuteReaderAsync();
 
-            var resultTable = new ConsoleTable("#", "Hotel", "Room No", "Room size", "Rating", "Distance to Beach", "Distance to city centre", "Price"); 
-            resultTable.Configure(o => o.EnableCount = false); 
+            var resultTable = new ConsoleTable("#", "Hotel", "Room No", "Room size", "Rating", "Distance to Beach", "Distance to city centre", "Price");
+            resultTable.Configure(o => o.EnableCount = false);
 
             int i = 1;
-            while (await reader.ReadAsync())                   
+            while (await reader.ReadAsync())
             {
                 resultTable.AddRow(i, reader.GetString(0), reader.GetInt32(1), reader.GetInt32(2), $"{reader.GetInt32(3)}/5", $"{reader.GetInt32(4)}km", $"{reader.GetInt32(5)}km", $"{reader.GetDecimal(6)}$");
                 i++;
@@ -330,27 +330,32 @@ public class Search(NpgsqlDataSource db)
             Console.WriteLine(resultTable);
 
 
-            Console.WriteLine("1. Order by price");            
+            Console.WriteLine("1. Order by price");
             Console.WriteLine("2. Order by rating");
             Console.WriteLine("3. Add room to booking");
             Console.WriteLine("4. Exit");
 
-            switch (Console.ReadKey(true).Key)                 
+            switch (Console.ReadKey(true).Key)
             {
                 case ConsoleKey.D1:
-                    orderPriceOrRating = "price ASC, ";        
+                    orderPriceOrRating = "price ASC, ";
                     break;
                 case ConsoleKey.D2:
-                    orderPriceOrRating = "rating DESC, ";      
+                    orderPriceOrRating = "rating DESC, ";
                     break;
                 case ConsoleKey.D3:
-                    break;
+                    var booking = new Booking(db);
+                    Cart cart = await booking.AddToCart(sDate, eDate, qSearchRooms);
+                    if (cart != null)
+                    {
+                        return cart;
+                    }
+                    else
+                    {
+                        break;
+                    }
                 case ConsoleKey.D4:
-                    return;
-                default:
-                    Console.WriteLine("Invalid input");
-                    Thread.Sleep(1000);
-                    break;
+                    return null;
             }
             // This is because Console.Clear doesn't actually clear the terminal for some reason
             for (i = 0; i < 40; i++)
