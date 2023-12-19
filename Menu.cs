@@ -84,13 +84,16 @@ public class Menu(NpgsqlDataSource db)
                 switch (Console.ReadLine())
                 {
                     case "1":
-                        //Customers.Reg(); 
+                        CustomerMgmt Cust = new CustomerMgmt(db);
+                        await Cust.Reg();
                         break;
                     case "2":
-                        //Customers.Edit();
+                        CustomerMgmt Cust2 = new CustomerMgmt(db);
+                        await Cust2.Edit(); 
                         break;
                     case "3":
-                        //Customers.Display();
+                        CustomerMgmt Cust3 = new CustomerMgmt(db);
+                        await Cust3.SelectAll();
                         break;
                     case "4":
                         menu = Type.Main;
