@@ -1,4 +1,5 @@
-﻿using Npgsql;
+using ConsoleTables;
+using Npgsql;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -131,7 +132,7 @@ public class Booking(NpgsqlDataSource db)
         }
     }
 
-    public async Task Create()
+    public async Task Create(Cart cart)
     {
         await using (var cmd = db.CreateCommand())
         {
@@ -177,52 +178,34 @@ public class Booking(NpgsqlDataSource db)
                 }
             }
 
+            int totalRoomSize = 0;
+            foreach (var item in cart.RoomSize)
+            {
+                totalRoomSize += item;
+            }
+
+            if (companySize > totalRoomSize)
+            {
+                Console.WriteLine($"\nYour company size exceeds the number of beds in these rooms ({totalRoomSize})");
+                Console.Write("Press any key to return to menu");
+                Console.ReadKey();
+                return;
+            }
+
             string pattern = "yyyy-mm-dd";
-            DateTime sDate;
-            DateTime eDate;
-            string? stringStartDate = string.Empty;
-            string? stringEndDate = string.Empty;
-            bool enterDate1 = false;
+            string? stringStartDate = cart.StartDate;
+            string? stringEndDate = cart.EndDate;
 
-            while (!enterDate1)
+            DateTime startDate = DateTime.ParseExact(stringStartDate, pattern, null);
+
+            DateTime endDate = DateTime.ParseExact(stringStartDate, pattern, null);
+
+            List<int> listRoomID = cart.Rooms;
+            Console.WriteLine();
+            foreach (int item in listRoomID)
             {
-                Console.WriteLine("\nEnter the start date for this vacation ('yyyy-mm-dd'):");
-                stringStartDate = Console.ReadLine();
-                try
-                {
-                    sDate = DateTime.ParseExact(stringStartDate, pattern, null);
-                    enterDate1 = true;
-                }
-                catch (FormatException)
-                {
-                    Console.Clear();
-                    Console.WriteLine("{0} is not in the correct format", stringStartDate);
-                }
+                Console.WriteLine("Room ID: " + item);
             }
-            DateTime startDate = DateTime.Parse(stringStartDate);
-
-            bool enterDate2 = false;
-
-            while (!enterDate2)
-            {
-                Console.WriteLine("\nEnter the end date for this vacation ('yyyy-mm-dd'):");
-                stringEndDate = Console.ReadLine();
-                try
-                {
-                    eDate = DateTime.ParseExact(stringEndDate, pattern, null);
-                    enterDate2 = true;
-                }
-                catch (FormatException)
-                {
-                    Console.Clear();
-                    Console.WriteLine("{0} is not in the correct format", stringEndDate);
-                }
-            }
-            DateTime endDate = DateTime.Parse(stringEndDate);
-
-            Console.Write("\nEnter the room ID for this vacation: ");
-            string? stringRoomID = Console.ReadLine();
-            int roomID = int.Parse(stringRoomID);
 
             List<int> addOnList = new List<int>();
             List<string> addOnList2 = new List<string>();
@@ -289,40 +272,110 @@ public class Booking(NpgsqlDataSource db)
 
             int bookingNumber = await GenerateNumber();
 
-            string locationName = await FindLocationName(roomID);
+            List<string> listLocationName = new List<string>();
+            for (int i = 0; i < listRoomID.Count; i++)
+            {
+                listLocationName.Add(await FindLocationName(listRoomID[i]));
+            }
 
             Console.Clear();
-            Console.WriteLine("Booking details\n\nCustomer name: " + customerName + "\nCustomer ID: " + customerNumber + "\nCompany size: " + companySize + "\nRoom ID: " + roomID +
-                "\nLocation: " + locationName);
+            Console.WriteLine("Booking details\n\nCustomer name: " + customerName + "\nCustomer ID: " + customerNumber +
+                "\nCompany size: " + companySize);
+            for (int i = 0; i < listRoomID.Count; i++)
+            {
+                Console.WriteLine($"Room ID: {listRoomID[i]} ({listLocationName[i]})");
+            }
             foreach (var item in addOnList2)
             {
                 Console.WriteLine("Add-ons: " + item);
             }
             Console.WriteLine("Start date: " + stringStartDate + "\nEnd date: " + stringEndDate);
 
+            decimal totalRoomPrice = await GetRoomPrices(listRoomID);
+            decimal totalAddonPrice = await GetAddonPrices(addOnList);
+            Console.WriteLine("Total price: " + (totalRoomPrice + totalAddonPrice));
+
             Console.Write("\nPress any key to finish the booking...");
             Console.ReadKey();
 
+            for (int i = 0; i < listRoomID.Count; i++)
+            {
+                cmd.CommandText = "INSERT INTO bookings (number, customer_id, room_id, start_date, end_date) VALUES ($1, $2, $3, $4, $5)";
 
-            cmd.CommandText = "INSERT INTO bookings (number, customer_id, room_id, start_date, end_date) VALUES ($1, $2, $3, $4, $5)";
-
-            cmd.Parameters.AddWithValue(bookingNumber);
-            cmd.Parameters.AddWithValue(customerNumber);
-            cmd.Parameters.AddWithValue(roomID);
-            cmd.Parameters.AddWithValue(startDate);
-            cmd.Parameters.AddWithValue(endDate);
-
-            await cmd.ExecuteNonQueryAsync();
+                cmd.Parameters.AddWithValue(bookingNumber);
+                cmd.Parameters.AddWithValue(customerNumber);
+                cmd.Parameters.AddWithValue(listRoomID[i]);
+                cmd.Parameters.AddWithValue(startDate);
+                cmd.Parameters.AddWithValue(endDate);
+                await cmd.ExecuteNonQueryAsync();
+                cmd.Parameters.Clear();
+            }
 
             Console.Clear();
             Console.WriteLine("The booking was successful!\n");
             Console.WriteLine("Booking number: " + bookingNumber);
 
             await InsertAddon(customerNumber, addOnList);
+
+            Console.Write("\nPress any key to return to booking menu");
+            Console.ReadKey();
         }
     }
 
-    public async Task <int> GenerateNumber()
+    public async Task<decimal> GetRoomPrices(List<int> roomIDs)
+    {
+        await using (var cmd = db.CreateCommand())
+        {
+            decimal totalPrice = 0;
+
+            for (int i = 0; i < roomIDs.Count; i++)
+            {
+                string qGetPrices = @$"
+                    SELECT r.price
+                    FROM rooms r
+                    WHERE r.room_id = $1
+            ";
+
+                var query = db.CreateCommand(qGetPrices);
+                query.Parameters.AddWithValue(roomIDs[i]);
+                var reader = await query.ExecuteReaderAsync();
+
+                while (await reader.ReadAsync())
+                {
+                    totalPrice += reader.GetDecimal(0);
+                }
+            }
+            return totalPrice;
+        }
+    }
+
+    public async Task<decimal> GetAddonPrices(List<int> addOns)
+    {
+        await using (var cmd = db.CreateCommand())
+        {
+            decimal totalPrice = 0;
+            for (int i = 0; i < addOns.Count; i++)
+            {
+                string qGetPrices = @$"
+                    SELECT a.price
+                    FROM add_ons a
+                    WHERE a.add_on_id = $1
+            ";
+
+                var query = db.CreateCommand(qGetPrices);
+                query.Parameters.AddWithValue(addOns[i]);
+                var reader = await query.ExecuteReaderAsync();
+
+                while (await reader.ReadAsync())
+                {
+                    totalPrice += reader.GetDecimal(0);
+                }
+            }
+            return totalPrice;
+        }
+    }
+
+    public async Task<int> GenerateNumber()
     {
         await using (var cmd = db.CreateCommand())
         {
@@ -420,4 +473,128 @@ public class Booking(NpgsqlDataSource db)
             }
         }
     }
+
+
+    public async Task EditBooking()
+    {
+
+        await using (var cmd = db.CreateCommand())
+        {
+            Console.WriteLine("Edit bookings");
+            Console.WriteLine("Enter Booking number");
+            string BN = Console.ReadLine();
+
+            Console.WriteLine("Enter Number");
+            string NewNumber = Console.ReadLine();
+            Console.WriteLine("Enter customer ID");
+            string NewCustomerID = Console.ReadLine();
+            Console.WriteLine("Enter Room ID");
+            string NewRoomID = Console.ReadLine();
+            Console.WriteLine("Enter start date");
+            string NewStartDate = Console.ReadLine();
+            Console.WriteLine("enter end date");
+            string NewEndDate = Console.ReadLine();
+
+            string setClause = "SET ";
+
+            if (!string.IsNullOrEmpty(NewNumber))
+            {
+                setClause += $"number = '{NewNumber}', ";
+            }
+            if (!string.IsNullOrEmpty(NewCustomerID))
+            {
+                setClause += $"customer_id = '{NewCustomerID}', ";
+            }
+            if (!string.IsNullOrEmpty(NewRoomID))
+            {
+                setClause += $"room_id = '{NewRoomID}', ";
+            }
+            if (!string.IsNullOrEmpty(NewStartDate))
+            {
+                setClause += $"start_date = '{NewStartDate}', ";
+            }
+            if (!string.IsNullOrEmpty(NewEndDate))
+            {
+                setClause += $"end_date = '{NewEndDate}', ";
+            }
+
+            if (setClause.EndsWith(", "))
+            {
+                setClause = setClause.Substring(0, setClause.Length - 2);
+            }
+
+            cmd.CommandText = $"UPDATE bookings {setClause} WHERE booking_id = '{BN}'";
+
+            await cmd.ExecuteNonQueryAsync();
+
+        }
+    }
+
+    public async Task<Cart> AddToCart(string startdate, string enddate, string searchquery)
+    {
+        List<int> allRooms = new List<int>();
+        List<int> allRoomSizes = new List<int>();
+        List<int> bookedRooms = new List<int>();
+        List<int> bookedRoomSizes = new List<int>();
+
+        var reader = await db.CreateCommand(searchquery).ExecuteReaderAsync();
+
+        var resultTable = new ConsoleTable("#", "Hotel", "Room No", "Room size", "Rating", "Distance to Beach", "Distance to city centre", "Price");
+        resultTable.Configure(o => o.EnableCount = false);
+
+        var cartTable = new ConsoleTable("#", "Hotel", "Room No", "Room size", "Rating", "Distance to Beach", "Distance to city centre", "Price");
+        cartTable.Configure(o => o.EnableCount = false);
+
+        int i = 1;
+        while (await reader.ReadAsync())
+        {
+            allRooms.Add(reader.GetInt32(7));
+            allRoomSizes.Add(reader.GetInt32(2));
+            resultTable.AddRow(i, reader.GetString(0), reader.GetInt32(1), reader.GetInt32(2), $"{reader.GetInt32(3)}/5", $"{reader.GetInt32(4)}km", $"{reader.GetInt32(5)}km", $"{reader.GetDecimal(6)}$");
+            i++;
+        }
+
+        while (true)
+        {
+
+            //Because of bug where console.clear doesn't clear console window
+            for (int j = 0; j < 40; j++)
+            {
+                Console.WriteLine();
+            }
+            Console.WriteLine(resultTable);
+            Console.WriteLine("\n Booked Rooms");
+            Console.WriteLine(cartTable);
+
+            Console.WriteLine("Write the number of the room you'd like to add to your cart");
+            Console.WriteLine("Leave empty to return to previous menu and add any selected rooms to cart");
+            string input = Console.ReadLine() ?? string.Empty;
+            if (input == string.Empty)
+            {
+                if (bookedRooms.Count == 0)
+                {
+                    return null;
+                }
+                else
+                {
+                    Cart cart = new Cart(bookedRooms, startdate, enddate, bookedRoomSizes);
+                    return cart;
+                }
+            }
+
+            if (int.TryParse(input, out int value) && value > 0 && value <= allRooms.Count && !bookedRooms.Contains(allRooms[value - 1]))
+            {
+                bookedRooms.Add(allRooms[value - 1]);
+                bookedRoomSizes.Add(allRoomSizes[value - 1]);
+                cartTable.AddRow(resultTable.Rows[value - 1]);
+            }
+            else
+            {
+                Console.WriteLine("Invalid input!\n Make sure you did't try to add a room that's already added or isn't on the list");
+                Console.ReadKey();
+            }
+        }
+    }
 }
+
+
