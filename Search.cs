@@ -13,36 +13,11 @@ public class Search(NpgsqlDataSource db)
         DateTime sDate = new DateTime();
         DateTime eDate = new DateTime();
 
-        string? startDate = string.Empty;
+        string? startDate = await AddStartDate(pattern, startOfSeason, endOfSeason);
         string? endDate = string.Empty;
 
-        string inputPromt = "Please enter start day of booking ('yyyy-mm-dd')";
         bool validInput = false;
-        do
-        {
-            Console.Clear();
-            Console.WriteLine(inputPromt);
-            startDate = Console.ReadLine() ?? string.Empty;
-            try
-            {
-                sDate = DateTime.ParseExact(startDate, pattern, null);
-                if (sDate > startOfSeason && sDate < endOfSeason)
-                {
-                    validInput = true;
-                    inputPromt = $"{inputPromt}\n{startDate}\nPlease enter end date of booking ('yyyy-mm-dd')";
-                }
-                else
-                {
-                    Console.WriteLine("Date outside of Holiday Season");
-                    Thread.Sleep(1000);
-                }
-            }
-            catch (FormatException)
-            {
-                Console.WriteLine("\n{0} is not in the correct format", startDate);
-                Thread.Sleep(1000);
-            }
-        } while (!validInput);
+        string inputPromt = "Test";
 
         do
         {
@@ -363,5 +338,38 @@ public class Search(NpgsqlDataSource db)
                 Console.WriteLine();
             }
         }
+    }
+
+    async Task<string> AddStartDate(string pattern, DateTime startOfSeason, DateTime endOfSeason)
+    {
+        Console.Clear();
+        bool validInput = false;
+        string startDate = string.Empty;
+        do
+        {
+            DateTime sDate;
+            Console.Clear();
+            Console.WriteLine("Enter start date of booking: ");
+            startDate = Console.ReadLine() ?? string.Empty;
+            try
+            {
+                sDate = DateTime.ParseExact(startDate, pattern, null);
+                if (sDate > startOfSeason && sDate < endOfSeason)
+                {
+                    validInput = true;
+                }
+                else
+                {
+                    Console.WriteLine("Date outside of Holiday Season");
+                    Thread.Sleep(1000);
+                }
+            }
+            catch (FormatException)
+            {
+                Console.WriteLine("\n{0} is not in the correct format", startDate);
+                Thread.Sleep(1000);
+            }
+        } while (!validInput);
+        return startDate; 
     }
 }
