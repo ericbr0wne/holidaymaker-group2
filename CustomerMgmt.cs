@@ -165,7 +165,6 @@ public class CustomerMgmt(NpgsqlDataSource db)
         }
     }
 
-
     public async Task Edit()
     {
         await using (var cmd = db.CreateCommand())
@@ -176,17 +175,17 @@ public class CustomerMgmt(NpgsqlDataSource db)
             Console.WriteLine("Enter the date of birth to find customer Format yyyy-mm-dd: ");
             string DOB = Console.ReadLine();
 
-            Console.WriteLine("Enter Firstname: (Tap enter to keep old value)");
+            Console.WriteLine("Enter new firstname (leave empty if unchanged):");
             string NewFirstName = Console.ReadLine();
-            Console.WriteLine("Enter Lastname (Tap enter to keep old value)");
+            Console.WriteLine("Enter new lastname (leave empty if unchanged):");
             string NewLastName = Console.ReadLine();
-            Console.WriteLine("Enter Email (Tap enter to keep old value)");
+            Console.WriteLine("Enter new email (leave empty if unchanged):");
             string NewMail = Console.ReadLine();
-            Console.WriteLine("Enter Phonenumber (Tap enter to keep old value)");
+            Console.WriteLine("Enter new phone number (leave empty if unchanged):");
             string NewPhone = Console.ReadLine();
-            Console.WriteLine("Enter birth of date (Tap enter to keep old value)");
+            Console.WriteLine("Enter new birth of date (leave empty if unchanged):");
             string NewDob = Console.ReadLine();
-            Console.WriteLine("Enter CO Size(Tap enter to keep old value)");
+            Console.WriteLine("Enter new company size (leave empty if unchanged):");
             string NewCoSize = Console.ReadLine();
 
             string setClause = "SET ";
