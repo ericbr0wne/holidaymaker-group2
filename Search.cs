@@ -308,7 +308,7 @@ public class Search(NpgsqlDataSource db)
             Console.WriteLine("1. Order by price");
             Console.WriteLine("2. Order by rating");
             Console.WriteLine("3. Add room to booking");
-            Console.WriteLine("4. Exit");
+            Console.WriteLine("4. Return to previous menu");
 
             switch (Console.ReadKey(true).Key)
             {
@@ -320,7 +320,7 @@ public class Search(NpgsqlDataSource db)
                     break;
                 case ConsoleKey.D3:
                     var booking = new Booking(db);
-                    Cart cart = await booking.AddToCart(sDate, eDate, qSearchRooms);
+                    Cart cart = await booking.AddToCart(startDate, endDate, qSearchRooms);
                     if (cart != null)
                     {
                         return cart;
