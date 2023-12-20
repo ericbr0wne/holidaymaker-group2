@@ -781,68 +781,91 @@ public class Booking(NpgsqlDataSource db)
             while (!addOns);
         }
     }
-    public async Task<Cart> AddToCart(string startdate, string enddate, string searchquery)
+    public async Task<Cart> AddToCart(string qBeachDistance, string qCentreDistance, string qHasPool, string qHasEveningEntertainment, string qHasRestaurant, string qHasKidsClub, string qOrderPriceOrRating, string startDate, string endDate, int beachDistance, int centreDistance)
     {
-        List<int> allRooms = new List<int>();
-        List<int> allRoomSizes = new List<int>();
-        List<int> bookedRooms = new List<int>();
-        List<int> bookedRoomSizes = new List<int>();
-
-        var reader = await db.CreateCommand(searchquery).ExecuteReaderAsync();
-
-        var resultTable = new ConsoleTable("#", "Hotel", "Room No", "Room size", "Rating", "Distance to Beach", "Distance to city centre", "Price");
-        resultTable.Configure(o => o.EnableCount = false);
-
-        var cartTable = new ConsoleTable("#", "Hotel", "Room No", "Room size", "Rating", "Distance to Beach", "Distance to city centre", "Price");
-        cartTable.Configure(o => o.EnableCount = false);
-
-        int i = 1;
-        while (await reader.ReadAsync())
+        await using (var cmd = db.CreateCommand())
         {
-            allRooms.Add(reader.GetInt32(7));
-            allRoomSizes.Add(reader.GetInt32(2));
-            resultTable.AddRow(i, reader.GetString(0), reader.GetInt32(1), reader.GetInt32(2), $"{reader.GetInt32(3)}/5", $"{reader.GetInt32(4)}km", $"{reader.GetInt32(5)}km", $"{reader.GetDecimal(6)}$");
-            i++;
-        }
+            List<int> allRooms = new List<int>();
+            List<int> allRoomSizes = new List<int>();
+            List<int> bookedRooms = new List<int>();
+            List<int> bookedRoomSizes = new List<int>();
 
-        while (true)
-        {
+            string qSearchRooms = @$"
+        	        SELECT l.name, r.number, r.size, l.rating, l.beach_distance, l.centre_distance, r.price, r.room_id
+	                FROM rooms r
+        		    JOIN locations l USING (location_id)
+		            WHERE r.room_id NOT IN(
+        		        SELECT b.room_id
+		        	    FROM bookings b
+			            WHERE (b.start_date, b.end_date) OVERLAPS (date '{startDate}', date '{endDate}'))
+                    {qBeachDistance}
+                    {qCentreDistance}
+        		    {qHasPool}
+		            {qHasEveningEntertainment}
+            		{qHasRestaurant}
+	            	{qHasKidsClub}
+                    ORDER BY {qOrderPriceOrRating}name ASC, number ASC
+                    ";
 
-            //Because of bug where console.clear doesn't clear console window
-            for (int j = 0; j < 40; j++)
+            var query = db.CreateCommand(qSearchRooms);
+            query.Parameters.AddWithValue(beachDistance);
+            query.Parameters.AddWithValue(centreDistance);
+            var reader = await query.ExecuteReaderAsync();
+
+            var resultTable = new ConsoleTable("#", "Hotel", "Room No", "Room size", "Rating", "Distance to Beach", "Distance to city centre", "Price");
+            resultTable.Configure(o => o.EnableCount = false);
+
+            var cartTable = new ConsoleTable("#", "Hotel", "Room No", "Room size", "Rating", "Distance to Beach", "Distance to city centre", "Price");
+            cartTable.Configure(o => o.EnableCount = false);
+
+            int i = 1;
+            while (await reader.ReadAsync())
             {
-                Console.WriteLine();
+                allRooms.Add(reader.GetInt32(7));
+                allRoomSizes.Add(reader.GetInt32(2));
+                resultTable.AddRow(i, reader.GetString(0), reader.GetInt32(1), reader.GetInt32(2), $"{reader.GetInt32(3)}/5", $"{reader.GetInt32(4)}km", $"{reader.GetInt32(5)}km", $"{reader.GetDecimal(6)}$");
+                i++;
             }
-            Console.WriteLine(resultTable);
-            Console.WriteLine("\n Booked Rooms");
-            Console.WriteLine(cartTable);
 
-            Console.WriteLine("Write the number of the room you'd like to add to your cart");
-            Console.WriteLine("Leave empty to return to previous menu and add any selected rooms to cart");
-            string input = Console.ReadLine() ?? string.Empty;
-            if (input == string.Empty)
+            while (true)
             {
-                if (bookedRooms.Count == 0)
+
+                //Because of bug where console.clear doesn't clear console window
+                for (int j = 0; j < 40; j++)
                 {
-                    return null;
+                    Console.WriteLine();
+                }
+                Console.WriteLine(resultTable);
+                Console.WriteLine("\n Booked Rooms");
+                Console.WriteLine(cartTable);
+
+                Console.WriteLine("Write the number of the room you'd like to add to your cart");
+                Console.WriteLine("Leave empty to return to previous menu and add any selected rooms to cart");
+                string input = Console.ReadLine() ?? string.Empty;
+                if (input == string.Empty)
+                {
+                    if (bookedRooms.Count == 0)
+                    {
+                        return null;
+                    }
+                    else
+                    {
+                        Cart cart = new Cart(bookedRooms, startDate, endDate, bookedRoomSizes);
+                        return cart;
+                    }
+                }
+
+                if (int.TryParse(input, out int value) && value > 0 && value <= allRooms.Count && !bookedRooms.Contains(allRooms[value - 1]))
+                {
+                    bookedRooms.Add(allRooms[value - 1]);
+                    bookedRoomSizes.Add(allRoomSizes[value - 1]);
+                    cartTable.AddRow(resultTable.Rows[value - 1]);
                 }
                 else
                 {
-                    Cart cart = new Cart(bookedRooms, startdate, enddate, bookedRoomSizes);
-                    return cart;
+                    Console.WriteLine("Invalid input!\n Make sure you did't try to add a room that's already added or isn't on the list");
+                    Console.ReadKey();
                 }
-            }
-
-            if (int.TryParse(input, out int value) && value > 0 && value <= allRooms.Count && !bookedRooms.Contains(allRooms[value - 1]))
-            {
-                bookedRooms.Add(allRooms[value - 1]);
-                bookedRoomSizes.Add(allRoomSizes[value - 1]);
-                cartTable.AddRow(resultTable.Rows[value - 1]);
-            }
-            else
-            {
-                Console.WriteLine("Invalid input!\n Make sure you did't try to add a room that's already added or isn't on the list");
-                Console.ReadKey();
             }
         }
     }

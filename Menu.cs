@@ -127,6 +127,7 @@ public class Menu(NpgsqlDataSource db)
                 {
                     case ConsoleKey.D1:
                         await booking.Create(cart);
+                        cart = null;
                         break;
                     case ConsoleKey.D2:
                         await booking.Edit();

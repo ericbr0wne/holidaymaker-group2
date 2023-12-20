@@ -1,375 +1,456 @@
 ﻿using Npgsql;
 using ConsoleTables;
 using System.Security.Cryptography.X509Certificates;
+using System.Security.Cryptography;
 namespace holidaymaker_group2;
 
 public class Search(NpgsqlDataSource db)
 {
     public async Task<Cart> AvailableRooms()
     {
-        string pattern = "yyyy-MM-dd";
-        var startOfSeason = new DateTime(2022, 05, 31);
-        var endOfSeason = new DateTime(2022, 08, 01);
-        DateTime sDate = new DateTime();
-        DateTime eDate = new DateTime();
-
-        string? startDate = await AddStartDate(pattern, startOfSeason, endOfSeason);
-        string? endDate = string.Empty;
-
-        bool validInput = false;
-        string inputPromt = "Test";
-
-        do
+        await using (var cmd = db.CreateCommand())
         {
-            validInput = false;
-            Console.Clear();
-            Console.WriteLine(inputPromt);
-            endDate = Console.ReadLine() ?? string.Empty;
-            try
+
+            string pattern = "yyyy-MM-dd";
+            var startOfSeason = new DateTime(2022, 05, 31);
+            var endOfSeason = new DateTime(2022, 08, 01);
+
+            string startDate = await AddStartDate(pattern, startOfSeason, endOfSeason);
+            string endDate = await AddEndDate(pattern, startOfSeason, endOfSeason, startDate);
+
+            int beachDistance = await AskForBeachDistance();
+            string qBeachDistance = string.Empty;
+            if (beachDistance != 0)
             {
-                eDate = DateTime.ParseExact(endDate, pattern, null);
-                if (eDate > startOfSeason && eDate < endOfSeason)
+                qBeachDistance = @$"                                                                  
+	                    INTERSECT               
+
+    	                SELECT l.name, r.number, r.size, l.rating, l.beach_distance, l.centre_distance, r.price, r.room_id
+    		            FROM rooms r
+        	        	JOIN locations l USING (location_id)
+	                   	WHERE l.beach_distance < $1
+                        ";
+            }
+            int centreDistance = await AskForCentreDistance();
+            string qCentreDistance = string.Empty;
+            if (centreDistance != 0)
+            {
+                qCentreDistance = @$"                                                                  
+        	            INTERSECT               
+    
+        	            SELECT l.name, r.number, r.size, l.rating, l.beach_distance, l.centre_distance, r.price, r.room_id
+		                FROM rooms r
+	        	        JOIN locations l USING (location_id)
+        	           	WHERE l.beach_distance < $2 
+                        ";
+
+            }
+            string hasPool = await PoolChoice();
+            string hasEveningEntertainment = await EntertainmentChoice();
+            string hasRestaurant = await RestaurantChoice();
+            string hasKidsClub = await KidsClubChoice();
+            string orderPriceOrRating = string.Empty;
+
+            Console.Clear();
+
+            while (true)
+            {
+                await PrintResults(qBeachDistance, qCentreDistance, hasPool, hasEveningEntertainment, hasRestaurant, hasKidsClub, orderPriceOrRating, startDate, endDate, beachDistance, centreDistance);
+                switch (Console.ReadKey(true).Key)
                 {
-                    if (eDate > sDate)
-                    {
-                        validInput = true;
-                        inputPromt = $"{inputPromt}\n{endDate}\nMaximum distance from beach (leave empty if N/A): ";
-                    }
-                    else
-                    {
-                        Console.WriteLine("End date must be after start date.");
-                        Thread.Sleep(1000);
-                    }
-                }
-                else
-                {
-                    Console.WriteLine("Date outside of Holiday Season");
-                    Thread.Sleep(1000);
-                }
-            }
-            catch (FormatException)
-            {
-                Console.WriteLine("\n{0} is not in the correct format", endDate);
-                Thread.Sleep(1000);
-            }
-        } while (!validInput);
-
-        string beachDistance = string.Empty;
-        string centreDistance = string.Empty;
-        string hasPool = string.Empty;
-        string hasEveningEnternainment = string.Empty;
-        string hasRestaurant = string.Empty;
-        string hasKidsClub = string.Empty;
-
-        string beachInput = string.Empty;
-        string centreInput = string.Empty;
-        string poolInput = string.Empty;
-        string entertainmentInput = string.Empty;
-        string restaurantInput = string.Empty;
-        string kidsClubInput = string.Empty;
-
-        do
-        {
-            validInput = false;
-            Console.Clear();
-            Console.WriteLine(inputPromt);
-            beachInput = Console.ReadLine() ?? string.Empty;
-            if (beachInput == string.Empty)
-            {
-                validInput = true;
-                beachInput = "N/A";
-                inputPromt = $"{inputPromt}{beachInput}\nMaximum distance from city centre (leave empty if N/A): ";
-            }
-            else if (int.TryParse(beachInput, out int distance))
-            {
-                validInput = true;
-                inputPromt = $"{inputPromt}{beachInput}\nMaximum distance from city centre (leave empty if N/A): ";
-                beachDistance = @$"                                                                  
-	            INTERSECT               
-
-	            SELECT l.name, r.number, r.size, l.rating, l.beach_distance, l.centre_distance, r.price, r.room_id
-		        FROM rooms r
-	        	JOIN locations l USING (location_id)
-	           	WHERE l.beach_distance < {beachInput}
-                ";
-
-            }
-            else
-            {
-                Console.WriteLine("Invalid input");
-                Thread.Sleep(1000);
-            }
-
-        } while (!validInput);
-
-        do
-        {
-            validInput = false;
-            Console.Clear();
-            Console.WriteLine(inputPromt);
-            centreInput = Console.ReadLine() ?? string.Empty;
-            if (centreInput == string.Empty)
-            {
-                validInput = true;
-                centreInput = "N/A";
-                inputPromt = $"{inputPromt}{centreInput}\nChoose requirements (y/n)";
-            }
-            else if (int.TryParse(centreInput, out int distance))
-            {
-                validInput = true;
-                inputPromt = $"{inputPromt}{centreInput}\nChoose requirements (y/n)";
-                centreDistance = @$"                                                                  
-	            INTERSECT               
-
-	            SELECT l.name, r.number, r.size, l.rating, l.beach_distance, l.centre_distance, r.price, r.room_id
-		        FROM rooms r
-	        	JOIN locations l USING (location_id)
-	           	WHERE l.beach_distance < {centreInput}
-                ";
-
-            }
-            else
-            {
-                Console.WriteLine("Invalid input");
-                Thread.Sleep(1000);
-            }
-
-        } while (!validInput);
-        do
-        {
-            validInput = false;
-            Console.Clear();
-            Console.WriteLine(inputPromt);
-            Console.Write("Pool: ");
-            poolInput = Console.ReadLine() ?? string.Empty;
-            if (poolInput is "y" or "Y")
-            {
-                inputPromt = $"{inputPromt}\nPool: {poolInput}";
-                validInput = true;
-                hasPool = @"                                                                  
-	            INTERSECT               
-
-	            SELECT l.name, r.number, r.size, l.rating, l.beach_distance, l.centre_distance, r.price, r.room_id
-		        FROM rooms r
-	        	JOIN locations l USING (location_id)
-		        JOIN locations_to_facilities ltf USING (location_id)
-	           	WHERE ltf.facility_id = 1
-                ";
-            }
-            else if (poolInput is "n" or "N")
-            {
-                inputPromt = $"{inputPromt}\nPool: {poolInput}";
-                validInput = true;
-            }
-            else
-            {
-                Console.WriteLine("\nInvalid input");
-                Thread.Sleep(1000);
-            }
-        } while (!validInput);
-
-        do
-        {
-            validInput = false;
-            Console.Clear();
-            Console.WriteLine(inputPromt);
-            Console.Write("Evening enternainment: ");
-            entertainmentInput = Console.ReadLine() ?? string.Empty;
-            if (entertainmentInput is "y" or "Y")
-            {
-                inputPromt = $"{inputPromt}\nEvening entertainment: {entertainmentInput}";
-                validInput = true;
-                hasEveningEnternainment = @"
-            	INTERSECT
-
-            	SELECT l.name, r.number, r.size, l.rating, l.beach_distance, l.centre_distance, r.price, r.room_id
-	        	FROM rooms r
-	        	JOIN locations l USING (location_id)
-		        JOIN locations_to_facilities ltf USING (location_id)
-	        	WHERE ltf.facility_id = 2
-                ";
-            }
-            else if (entertainmentInput is "n" or "N")
-            {
-                inputPromt = $"{inputPromt}\nEvening entertainment: {entertainmentInput}";
-                validInput = true;
-            }
-            else
-            {
-                Console.WriteLine("\nInvalid input");
-                Thread.Sleep(1000);
-            }
-        } while (!validInput);
-
-        do
-        {
-            validInput = false;
-            Console.Clear();
-            Console.WriteLine(inputPromt);
-            Console.Write("Restaurant: ");
-            restaurantInput = Console.ReadLine() ?? string.Empty;
-            if (restaurantInput is "y" or "Y")
-            {
-                inputPromt = $"{inputPromt}\nRestaurant: {restaurantInput}";
-                validInput = true;
-                hasRestaurant = @"
-	            INTERSECT
-
-	            SELECT l.name, r.number, r.size, l.rating, l.beach_distance, l.centre_distance, r.price, r.room_id
-		        FROM rooms r
-        		JOIN locations l USING (location_id)
-	        	JOIN locations_to_facilities ltf USING (location_id)
-		        WHERE ltf.facility_id = 3
-                ";
-            }
-            else if (restaurantInput is "n" or "N")
-            {
-                inputPromt = $"{inputPromt}\nRestaurant: {restaurantInput}";
-                validInput = true;
-            }
-            else
-            {
-                Console.WriteLine("\nInvalid input");
-                Thread.Sleep(1000);
-            }
-        } while (!validInput);
-
-        do
-        {
-            validInput = false;
-            Console.Clear();
-            Console.WriteLine(inputPromt);
-            Console.Write("Kids club: ");
-            kidsClubInput = Console.ReadLine() ?? string.Empty;
-            if (kidsClubInput is "y" or "Y")
-            {
-                inputPromt = $"{inputPromt}\nKids club: {kidsClubInput}";
-                validInput = true;
-                hasKidsClub = @"
-	            INTERSECT
-
-	            SELECT l.name, r.number, r.size, l.rating, l.beach_distance, l.centre_distance, r.price, r.room_id
-	        	FROM rooms r
-		        JOIN locations l USING (location_id)
-        		JOIN locations_to_facilities ltf USING (location_id)
-	        	WHERE ltf.facility_id = 4
-                ";
-            }
-            else if (kidsClubInput is "n" or "N")
-            {
-                inputPromt = $"{inputPromt}\nKids club: {kidsClubInput}";
-                validInput = true;
-            }
-            else
-            {
-                Console.WriteLine("\nInvalid input");
-                Thread.Sleep(1000);
-            }
-        } while (!validInput);
-
-        string orderPriceOrRating = string.Empty;
-
-        Console.Clear();
-
-        while (true)
-        {
-
-            string qSearchRooms = @$"
-	        SELECT l.name, r.number, r.size, l.rating, l.beach_distance, l.centre_distance, r.price, r.room_id
-	        FROM rooms r
-		    JOIN locations l USING (location_id)
-		    WHERE r.room_id NOT IN(
-		        SELECT b.room_id
-			    FROM bookings b
-			    WHERE (b.start_date, b.end_date) OVERLAPS (date '{startDate}', date '{endDate}'))
-            {beachDistance}
-            {centreDistance}
-		    {hasPool}
-		    {hasEveningEnternainment}
-    		{hasRestaurant}
-	    	{hasKidsClub}
-            ORDER BY {orderPriceOrRating}name ASC, number ASC
-            ";
-
-            var reader = await db.CreateCommand(qSearchRooms).ExecuteReaderAsync();
-
-            var resultTable = new ConsoleTable("#", "Hotel", "Room No", "Room size", "Rating", "Distance to Beach", "Distance to city centre", "Price");
-            resultTable.Configure(o => o.EnableCount = false);
-
-            int i = 1;
-            while (await reader.ReadAsync())
-            {
-                resultTable.AddRow(i, reader.GetString(0), reader.GetInt32(1), reader.GetInt32(2), $"{reader.GetInt32(3)}/5", $"{reader.GetInt32(4)}km", $"{reader.GetInt32(5)}km", $"{reader.GetDecimal(6)}$");
-                i++;
-            }
-            Console.WriteLine(resultTable);
-
-
-            Console.WriteLine("1. Order by price");
-            Console.WriteLine("2. Order by rating");
-            Console.WriteLine("3. Add room to booking");
-            Console.WriteLine("4. Return to previous menu");
-
-            switch (Console.ReadKey(true).Key)
-            {
-                case ConsoleKey.D1:
-                    orderPriceOrRating = "price ASC, ";
-                    break;
-                case ConsoleKey.D2:
-                    orderPriceOrRating = "rating DESC, ";
-                    break;
-                case ConsoleKey.D3:
-                    var booking = new Booking(db);
-                    Cart cart = await booking.AddToCart(startDate, endDate, qSearchRooms);
-                    if (cart != null)
-                    {
-                        return cart;
-                    }
-                    else
-                    {
+                    case ConsoleKey.D1:
+                        orderPriceOrRating = "price ASC, ";
                         break;
-                    }
-                case ConsoleKey.D4:
-                    return null;
-            }
-            // This is because Console.Clear doesn't actually clear the terminal for some reason
-            for (i = 0; i < 40; i++)
-            {
-                Console.WriteLine();
+                    case ConsoleKey.D2:
+                        orderPriceOrRating = "rating DESC, ";
+                        break;
+                    case ConsoleKey.D3:
+                        var booking = new Booking(db);
+                        Cart cart = await booking.AddToCart(qBeachDistance, qCentreDistance, hasPool, hasEveningEntertainment, hasRestaurant, hasKidsClub, orderPriceOrRating, startDate, endDate, beachDistance, centreDistance);
+                        if (cart != null)
+                        {
+                            return cart;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    case ConsoleKey.D4:
+                        return null;
+                }
+                for (int i = 0; i < 50; i++)
+                {
+                    Console.WriteLine();
+                }
             }
         }
-    }
 
-    async Task<string> AddStartDate(string pattern, DateTime startOfSeason, DateTime endOfSeason)
-    {
-        Console.Clear();
-        bool validInput = false;
-        string startDate = string.Empty;
-        do
+        async Task<string> AddStartDate(string pattern, DateTime startOfSeason, DateTime endOfSeason)
         {
-            DateTime sDate;
-            Console.Clear();
-            Console.WriteLine("Enter start date of booking: ");
-            startDate = Console.ReadLine() ?? string.Empty;
-            try
+            await using (var cmd = db.CreateCommand())
             {
-                sDate = DateTime.ParseExact(startDate, pattern, null);
-                if (sDate > startOfSeason && sDate < endOfSeason)
+                Console.Clear();
+                bool validInput = false;
+                string dateInput = string.Empty;
+                DateTime startDate = new DateTime();
+                do
                 {
-                    validInput = true;
-                }
-                else
+                    Console.Clear();
+                    Console.WriteLine("Enter start date of booking: ");
+                    dateInput = Console.ReadLine() ?? string.Empty;
+                    try
+                    {
+                        startDate = DateTime.ParseExact(dateInput, pattern, null);
+                        if (startDate > startOfSeason && startDate < endOfSeason)
+                        {
+                            validInput = true;
+                        }
+                        else
+                        {
+                            Console.WriteLine("Date outside of Holiday Season");
+                            Thread.Sleep(1000);
+                        }
+                    }
+                    catch (FormatException)
+                    {
+                        Console.WriteLine("\n{0} is not in the correct format", dateInput);
+                        Thread.Sleep(1000);
+                    }
+                } while (!validInput);
+                return dateInput;
+            }
+        }
+
+        async Task<string> AddEndDate(string pattern, DateTime startOfSeason, DateTime endOfSeason, string startDate)
+        {
+            await using (var cmd = db.CreateCommand())
+            {
+                Console.Clear();
+                DateTime sDate = DateTime.ParseExact(startDate, pattern, null);
+                bool validInput = false;
+                string dateInput = string.Empty;
+                DateTime endDate = new DateTime();
+                do
                 {
-                    Console.WriteLine("Date outside of Holiday Season");
-                    Thread.Sleep(1000);
+                    Console.Clear();
+                    Console.WriteLine("Enter end date of booking: ");
+                    dateInput = Console.ReadLine() ?? string.Empty;
+                    try
+                    {
+                        endDate = DateTime.ParseExact(dateInput, pattern, null);
+                        if (endDate > startOfSeason && endDate < endOfSeason)
+                        {
+                            if (endDate > sDate)
+                            {
+                                validInput = true;
+                            }
+                            else
+                            {
+                                Console.WriteLine("End date must be after start date.");
+                                Thread.Sleep(1000);
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("Date outside of Holiday Season");
+                            Thread.Sleep(1000);
+                        }
+                    }
+                    catch (FormatException)
+                    {
+                        Console.WriteLine("\n{0} is not in the correct format", dateInput);
+                        Thread.Sleep(1000);
+                    }
+                } while (!validInput);
+                return dateInput;
+            }
+        }
+
+        async Task<int> AskForBeachDistance()
+        {
+            await using (var cmd = db.CreateCommand())
+            {
+                int beachDistance = 0;
+                bool validInput = false;
+                do
+                {
+                    Console.Clear();
+                    Console.WriteLine("Enter maximum distance(km) from beach (leave empty if N/A): ");
+                    string beachInput = Console.ReadLine() ?? string.Empty;
+                    if (beachInput == string.Empty)
+                    {
+                        validInput = true;
+                    }
+                    else if (int.TryParse(beachInput, out int distance))
+                    {
+                        if (distance != 0)
+                        {
+                            validInput = true;
+                            beachDistance = distance;
+                        }
+                        else
+                        {
+                            Console.WriteLine("Distance can't be 0");
+                            Thread.Sleep(1337);
+                        }
+
+                    }
+                    else
+                    {
+                        Console.WriteLine("Invalid input");
+                        Thread.Sleep(1000);
+                    }
+
+                } while (!validInput);
+                return beachDistance;
+            }
+        }
+
+        async Task<int> AskForCentreDistance()
+        {
+            await using (var cmd = db.CreateCommand())
+            {
+                int centreDistance = 0;
+                bool validInput = false;
+                do
+                {
+                    Console.Clear();
+                    Console.WriteLine("Enter maximum distance(km) from city centre or leave empty if N/A: ");
+                    string centreInput = Console.ReadLine() ?? string.Empty;
+                    if (centreInput == string.Empty)
+                    {
+                        validInput = true;
+                    }
+                    else if (int.TryParse(centreInput, out int distance))
+                    {
+                        if (distance != 0)
+                        {
+                            validInput = true;
+                            centreDistance = distance;
+                        }
+                        else
+                        {
+                            Console.WriteLine("Distance can't be 0");
+                            Thread.Sleep(1337);
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("Invalid input");
+                        Thread.Sleep(1000);
+                    }
+
+                } while (!validInput);
+                return centreDistance;
+            }
+        }
+
+        async Task<string> PoolChoice()
+        {
+            await using (var cmd = db.CreateCommand())
+            {
+                string hasPool = string.Empty;
+                bool validInput = false;
+                do
+                {
+                    Console.Clear();
+                    Console.WriteLine("Choose requirements (Y/N)");
+                    Console.Write("Pool: ");
+                    string poolInput = Console.ReadLine() ?? string.Empty;
+                    if (poolInput is "y" or "Y")
+                    {
+                        validInput = true;
+                        hasPool = @"                                                                  
+        	            INTERSECT               
+        
+        	            SELECT l.name, r.number, r.size, l.rating, l.beach_distance, l.centre_distance, r.price, r.room_id
+		                FROM rooms r
+	        	        JOIN locations l USING (location_id)
+        		        JOIN locations_to_facilities ltf USING (location_id)
+	                   	WHERE ltf.facility_id = 1
+                        ";
+                    }
+                    else if (poolInput is "n" or "N")
+                    {
+                        validInput = true;
+                    }
+                    else
+                    {
+                        Console.WriteLine("\nInvalid input");
+                        Thread.Sleep(1000);
+                    }
+                } while (!validInput);
+                return hasPool;
+            }
+        }
+
+        async Task<string> EntertainmentChoice()
+        {
+            await using (var cmd = db.CreateCommand())
+            {
+                string hasEveningEntertainment = string.Empty;
+                bool validInput = false;
+                do
+                {
+                    validInput = false;
+                    Console.Clear();
+                    Console.WriteLine("Choose requirements (Y/N)");
+                    Console.Write("Evening enternainment: ");
+                    string entertainmentInput = Console.ReadLine() ?? string.Empty;
+                    if (entertainmentInput is "y" or "Y")
+                    {
+                        validInput = true;
+                        hasEveningEntertainment = @"
+                    	INTERSECT
+
+                    	SELECT l.name, r.number, r.size, l.rating, l.beach_distance, l.centre_distance, r.price, r.room_id
+	                	FROM rooms r
+	        	        JOIN locations l USING (location_id)
+        		        JOIN locations_to_facilities ltf USING (location_id)
+	                	WHERE ltf.facility_id = 2
+                        ";
+                    }
+                    else if (entertainmentInput is "n" or "N")
+                    {
+                        validInput = true;
+                    }
+                    else
+                    {
+                        Console.WriteLine("\nInvalid input");
+                        Thread.Sleep(1000);
+                    }
+                } while (!validInput);
+                return hasEveningEntertainment;
+
+            }
+        }
+
+        async Task<string> RestaurantChoice()
+        {
+            await using (var cmd = db.CreateCommand())
+            {
+                string hasRestaurant = string.Empty;
+                bool validInput = false;
+                do
+                {
+                    Console.Clear();
+                    Console.WriteLine("Choose requirements (Y/N)");
+                    Console.Write("Restaurant: ");
+                    string restaurantInput = Console.ReadLine() ?? string.Empty;
+                    if (restaurantInput is "y" or "Y")
+                    {
+                        validInput = true;
+                        hasRestaurant = @"
+        	            INTERSECT
+
+	                    SELECT l.name, r.number, r.size, l.rating, l.beach_distance, l.centre_distance, r.price, r.room_id
+		                FROM rooms r
+                		JOIN locations l USING (location_id)
+	                	JOIN locations_to_facilities ltf USING (location_id)
+		                WHERE ltf.facility_id = 3
+                        ";
+                    }
+                    else if (restaurantInput is "n" or "N")
+                    {
+                        validInput = true;
+                    }
+                    else
+                    {
+                        Console.WriteLine("\nInvalid input");
+                        Thread.Sleep(1000);
+                    }
+                } while (!validInput);
+                return hasRestaurant;
+            }
+        }
+
+        async Task<string> KidsClubChoice()
+        {
+            await using (var cmd = db.CreateCommand())
+            {
+                string hasKidsClub = string.Empty;
+                bool validInput = false;
+                do
+                {
+                    Console.Clear();
+                    Console.WriteLine("Choose requirements (Y/N)");
+                    Console.Write("Kids club: ");
+                    string kidsClubInput = Console.ReadLine() ?? string.Empty;
+                    if (kidsClubInput is "y" or "Y")
+                    {
+                        validInput = true;
+                        hasKidsClub = @"
+	                    INTERSECT
+
+	                    SELECT l.name, r.number, r.size, l.rating, l.beach_distance, l.centre_distance, r.price, r.room_id
+	                	FROM rooms r
+        		        JOIN locations l USING (location_id)
+        		        JOIN locations_to_facilities ltf USING (location_id)
+	                	WHERE ltf.facility_id = 4
+                        ";
+                    }
+                    else if (kidsClubInput is "n" or "N")
+                    {
+                        validInput = true;
+                    }
+                    else
+                    {
+                        Console.WriteLine("\nInvalid input");
+                        Thread.Sleep(1000);
+                    }
+                } while (!validInput);
+                return hasKidsClub;
+            }
+        }
+
+        async Task PrintResults(string qBeachDistance, string qCentreDistance, string qHasPool, string qHasEveningEntertainment, string qHasRestaurant, string qHasKidsClub, string qOrderPriceOrRating, string startDate, string endDate, int beachDistance, int centreDistance)
+        {
+            {
+                await using (var cmd = db.CreateCommand())
+                {
+                    string qSearchRooms = @$"
+        	        SELECT l.name, r.number, r.size, l.rating, l.beach_distance, l.centre_distance, r.price, r.room_id
+	                FROM rooms r
+        		    JOIN locations l USING (location_id)
+		            WHERE r.room_id NOT IN(
+        		        SELECT b.room_id
+		        	    FROM bookings b
+			            WHERE (b.start_date, b.end_date) OVERLAPS (date '{startDate}', date '{endDate}'))
+                    {qBeachDistance}
+                    {qCentreDistance}
+        		    {qHasPool}
+		            {qHasEveningEntertainment}
+            		{qHasRestaurant}
+	            	{qHasKidsClub}
+                    ORDER BY {qOrderPriceOrRating}name ASC, number ASC
+                    ";
+
+                    var query = db.CreateCommand(qSearchRooms);
+                    query.Parameters.AddWithValue(beachDistance);
+                    query.Parameters.AddWithValue(centreDistance);
+                    var reader = await query.ExecuteReaderAsync();
+
+
+                    var resultTable = new ConsoleTable("#", "Hotel", "Room No", "Room size", "Rating", "Distance to Beach", "Distance to city centre", "Price");
+                    resultTable.Configure(o => o.EnableCount = false);
+
+                    int i = 1;
+                    while (await reader.ReadAsync())
+                    {
+                        resultTable.AddRow(i, reader.GetString(0), reader.GetInt32(1), reader.GetInt32(2), $"{reader.GetInt32(3)}/5", $"{reader.GetInt32(4)}km", $"{reader.GetInt32(5)}km", $"{reader.GetDecimal(6)}$");
+                        i++;
+                    }
+                    Console.WriteLine(resultTable);
+
+
+                    Console.WriteLine("1. Order by price");
+                    Console.WriteLine("2. Order by rating");
+                    Console.WriteLine("3. Add room to booking");
+                    Console.WriteLine("4. Return to previous menu");
+
                 }
             }
-            catch (FormatException)
-            {
-                Console.WriteLine("\n{0} is not in the correct format", startDate);
-                Thread.Sleep(1000);
-            }
-        } while (!validInput);
-        return startDate; 
+        }
+
     }
 }
