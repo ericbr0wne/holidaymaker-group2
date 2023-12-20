@@ -80,7 +80,7 @@ public class Menu(NpgsqlDataSource db)
                 Console.WriteLine();
                 Console.WriteLine("1. Register");
                 Console.WriteLine("2. Edit");
-                Console.WriteLine("3. Display All");
+                Console.WriteLine("3. Display all");
                 Console.WriteLine("4. Return to Main menu");
                 Console.WriteLine("0. Exit HolidayMaker");
 
@@ -117,8 +117,8 @@ public class Menu(NpgsqlDataSource db)
                 Console.Clear();
                 Console.WriteLine("*** Bookings ***");
                 Console.WriteLine();
-                Console.WriteLine("1. Create");
-                Console.WriteLine("2. Edit");
+                Console.WriteLine("1. Create booking");
+                Console.WriteLine("2. Edit booking");
                 Console.WriteLine("3. Cancel booking");
                 Console.WriteLine("4. Return to Main menu");
                 Console.WriteLine("0. Exit HolidayMaker");
