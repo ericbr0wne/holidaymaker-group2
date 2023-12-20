@@ -78,6 +78,7 @@ public class Search(NpgsqlDataSource db)
                     case ConsoleKey.D4:
                         return null;
                 }
+                //patch for bug where console doesn't clear as expected
                 for (int i = 0; i < 50; i++)
                 {
                     Console.WriteLine();
