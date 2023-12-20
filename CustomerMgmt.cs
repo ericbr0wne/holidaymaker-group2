@@ -234,7 +234,7 @@ public class CustomerMgmt(NpgsqlDataSource db)
     public async Task SelectAll()
     {
         var displayCustTable = new ConsoleTable("FirstName", "LastName", "E-mail", "Phone", "DateOfBirth", "CompanySize");
-
+        displayCustTable.Configure(o => o.EnableCount = false);
         await using (var cmd = db.CreateCommand("SELECT first_name, last_name, mail, phone, date_of_birth, co_size FROM customers"))
         await using (var reader = await cmd.ExecuteReaderAsync())
         {
