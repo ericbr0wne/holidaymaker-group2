@@ -176,7 +176,7 @@ public class Menu(NpgsqlDataSource db)
                     case ConsoleKey.D2:
                         menu = Type.Main;
                         continue;
-                    case ConsoleKey.D3:
+                    case ConsoleKey.D0:
                         menu = Type.Exit;
                         break;
                     default:

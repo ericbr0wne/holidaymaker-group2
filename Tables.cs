@@ -50,8 +50,8 @@ public class Tables(NpgsqlDataSource db)
             name            TEXT NOT NULL
         )";
 
-        const string qLocationToFacilities = @"
-        CREATE TABLE IF     NOT EXISTS location_to_facilities(
+        const string qLocationsToFacilities = @"
+        CREATE TABLE IF     NOT EXISTS locations_to_facilities(
             id SERIAL       PRIMARY KEY,
             location_id     SERIAL REFERENCES locations (location_id),
             facility_id     SERIAL REFERENCES facilities (facility_id)
@@ -86,7 +86,7 @@ public class Tables(NpgsqlDataSource db)
         await db.CreateCommand(qBookingstoAddons).ExecuteNonQueryAsync();
         await db.CreateCommand(qLocationstoAddons).ExecuteNonQueryAsync();
         await db.CreateCommand(qFacilities).ExecuteNonQueryAsync();
-        await db.CreateCommand(qLocationToFacilities).ExecuteNonQueryAsync();
+        await db.CreateCommand(qLocationsToFacilities).ExecuteNonQueryAsync();
     }
 
 }

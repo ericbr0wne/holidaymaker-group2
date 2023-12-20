@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
@@ -193,13 +194,13 @@ public class Booking(NpgsqlDataSource db)
                 return;
             }
 
-            string pattern = "yyyy-mm-dd";
+            string pattern = "yyyy-MM-dd";
             string? stringStartDate = cart.StartDate;
             string? stringEndDate = cart.EndDate;
 
             DateTime startDate = DateTime.ParseExact(stringStartDate, pattern, null);
 
-            DateTime endDate = DateTime.ParseExact(stringStartDate, pattern, null);
+            DateTime endDate = DateTime.ParseExact(stringEndDate, pattern, null);
 
             List<int> listRoomID = cart.Rooms;
             Console.WriteLine();
@@ -291,6 +292,8 @@ public class Booking(NpgsqlDataSource db)
                 Console.WriteLine("Add-ons: " + item);
             }
             Console.WriteLine("Start date: " + stringStartDate + "\nEnd date: " + stringEndDate);
+
+            Console.WriteLine($"{startDate} + {endDate}");
 
             decimal totalRoomPrice = await GetRoomPrices(listRoomID);
             decimal totalAddonPrice = await GetAddonPrices(addOnList);
@@ -458,7 +461,7 @@ public class Booking(NpgsqlDataSource db)
             query.Parameters.AddWithValue(cusNum);
             var reader = await query.ExecuteReaderAsync();
 
-            while (reader.Read())
+            while (await reader.ReadAsync())
             {
                 bookingID = reader.GetInt32(0);
             }
@@ -475,62 +478,309 @@ public class Booking(NpgsqlDataSource db)
         }
     }
 
-
-    public async Task Edit()
+    public async Task<List<string>> ShowAddons(int bookingID)
     {
-
         await using (var cmd = db.CreateCommand())
         {
-            Console.WriteLine("Edit bookings");
-            Console.WriteLine("Enter Booking number");
-            string BN = Console.ReadLine();
+            List<string> addonIDs = new List<string>();
+            string qFindAddons = @$"
+                    SELECT a.type
+                    FROM bookings_to_add_ons ba
+                    JOIN add_ons a USING (add_on_id)
+                    WHERE ba.booking_id = $1
+                ";
 
-            Console.WriteLine("Enter Number");
-            string NewNumber = Console.ReadLine();
-            Console.WriteLine("Enter customer ID");
-            string NewCustomerID = Console.ReadLine();
-            Console.WriteLine("Enter Room ID");
-            string NewRoomID = Console.ReadLine();
-            Console.WriteLine("Enter start date");
-            string NewStartDate = Console.ReadLine();
-            Console.WriteLine("enter end date");
-            string NewEndDate = Console.ReadLine();
+            var query = db.CreateCommand(qFindAddons);
+            query.Parameters.AddWithValue(bookingID);
+            var reader = await query.ExecuteReaderAsync();
 
-            string setClause = "SET ";
-
-            if (!string.IsNullOrEmpty(NewNumber))
+            while (await reader.ReadAsync())
             {
-                setClause += $"number = '{NewNumber}', ";
+                addonIDs.Add(reader.GetString(0));
             }
-            if (!string.IsNullOrEmpty(NewCustomerID))
-            {
-                setClause += $"customer_id = '{NewCustomerID}', ";
-            }
-            if (!string.IsNullOrEmpty(NewRoomID))
-            {
-                setClause += $"room_id = '{NewRoomID}', ";
-            }
-            if (!string.IsNullOrEmpty(NewStartDate))
-            {
-                setClause += $"start_date = '{NewStartDate}', ";
-            }
-            if (!string.IsNullOrEmpty(NewEndDate))
-            {
-                setClause += $"end_date = '{NewEndDate}', ";
-            }
-
-            if (setClause.EndsWith(", "))
-            {
-                setClause = setClause.Substring(0, setClause.Length - 2);
-            }
-
-            cmd.CommandText = $"UPDATE bookings {setClause} WHERE booking_id = '{BN}'";
-
-            await cmd.ExecuteNonQueryAsync();
-
+            return addonIDs;
         }
     }
 
+    public async Task Edit()
+    {
+        await using (var cmd = db.CreateCommand())
+        {
+            Console.Clear();
+            Console.WriteLine("Edit bookings\n");
+            bool checkNumber = true;
+            int BN = 0;
+            Dictionary<int, int> bookingIDs = new Dictionary<int, int>();
+            do
+            {
+                Console.Clear();
+                Console.WriteLine("Enter Booking number");
+                BN = Convert.ToInt32(Console.ReadLine());
+                int count = 0;
+
+                string qSearchBookingNumber = @$"
+                    SELECT COUNT(*)
+                    FROM bookings b
+                    WHERE b.number = {BN}
+                ";
+
+                var reader = await db.CreateCommand(qSearchBookingNumber).ExecuteReaderAsync();
+
+                while (await reader.ReadAsync())
+                {
+                    count = reader.GetInt32(0);
+                }
+
+                if (count > 0)
+                {
+                    checkNumber = false;
+                }
+                else
+                {
+                    Console.Clear();
+                    Console.WriteLine($"Booking number '{BN}' does not exist.");
+                    Thread.Sleep(1300);
+                    checkNumber = true;
+                }
+            }
+            while (checkNumber);
+
+            do
+            {
+                Console.Clear();
+                bookingIDs.Clear();
+                var qShowBooking = @$"
+                            SELECT *
+                            FROM bookings b
+                            WHERE b.number = {BN}";
+
+                var reader2 = await db.CreateCommand(qShowBooking).ExecuteReaderAsync();
+                int i = 1;
+                while (await reader2.ReadAsync())
+                {
+                    Console.WriteLine("Booking details " + i + ":\n" + "\nBooking number: " + reader2.GetInt32(1) + "\nCustomer ID: " + reader2.GetInt32(2) + "\nRoom ID: " + reader2.GetInt32(3) +
+                        "\nStart date: " + reader2.GetDateTime(4).ToShortDateString() + "\nEnd date: " + reader2.GetDateTime(5).ToShortDateString() + "\n");
+                    bookingIDs.Add(i, reader2.GetInt32(0));
+                    i++;
+                }
+
+                string writeAddon = string.Empty;
+                List<string> listAddons = await ShowAddons(bookingIDs.Values.Max());
+
+                Console.Write("Add-ons: ");
+                foreach (var addon in listAddons)
+                {
+                    writeAddon += $"{addon}, ";
+                }
+                if (writeAddon.EndsWith(", "))
+                {
+                    writeAddon = writeAddon.Substring(0, writeAddon.Length - 2);
+                    Console.WriteLine(writeAddon);
+                }
+
+                Console.WriteLine("\n1. Edit bookings\n2. Return to menu");
+
+                switch (Console.ReadKey(true).Key)
+                {
+                    case ConsoleKey.D2:
+                        return;
+                    case ConsoleKey.D1:
+                        Console.WriteLine("Choose which booking you would like to edit: ");
+
+                        int input = Convert.ToInt32(Console.ReadLine());
+                        if (bookingIDs.ContainsKey(input))
+                        {
+                            Console.WriteLine("Enter new room ID");
+                            string NewRoomID = Console.ReadLine();
+                            Console.WriteLine("Enter new start date");
+                            string NewStartDate = Console.ReadLine();
+                            Console.WriteLine("Enter new end date");
+                            string NewEndDate = Console.ReadLine();
+                            Console.Write("Do you want to edit add-ons? (Y/N)");
+                            if (Console.ReadLine().ToUpper() == "Y")
+                            {
+                                await EditAddon(bookingIDs.Values.Max());
+                            }
+
+                            string setClause = "SET ";
+
+                            if (!string.IsNullOrEmpty(NewRoomID))
+                            {
+                                setClause += $"room_id = '{NewRoomID}', ";
+                            }
+                            if (!string.IsNullOrEmpty(NewStartDate))
+                            {
+                                setClause += $"start_date = '{NewStartDate}', ";
+                            }
+                            if (!string.IsNullOrEmpty(NewEndDate))
+                            {
+                                setClause += $"end_date = '{NewEndDate}', ";
+                            }
+
+                            if (setClause.EndsWith(", "))
+                            {
+                                setClause = setClause.Substring(0, setClause.Length - 2);
+                            }
+
+                            if (!setClause.Equals("SET "))
+                            {
+                                cmd.CommandText = $"UPDATE bookings {setClause} WHERE booking_id = '{bookingIDs[input]}'";
+
+                                await cmd.ExecuteNonQueryAsync();
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("Invalid input");
+                            Thread.Sleep(1337);
+                        }
+                        break;
+                    default:
+                        Console.WriteLine("Invalid input");
+                        Thread.Sleep(1337);
+                        break;
+                }
+            }
+            while (true);
+        }
+    }
+
+    public async Task EditAddon(int bookingID)
+    {
+        await using (var cmd = db.CreateCommand())
+        {
+            bool addOns = false;
+            List<string> listAddons = new List<string>();
+            string writeAddon = string.Empty;
+            do
+            {
+                Console.Clear();
+                listAddons = await ShowAddons(bookingID);
+                Console.Write("Add-ons in booking: ");
+                foreach (var item in listAddons)
+                {
+                    writeAddon += $"{item}, ";
+                }
+                if (writeAddon.EndsWith(", "))
+                {
+                    writeAddon = writeAddon.Substring(0, writeAddon.Length - 2);
+                    Console.WriteLine(writeAddon);
+                    writeAddon = string.Empty;
+                }
+                Console.WriteLine();
+                Console.WriteLine("1. Add add-ons\n2. Remove add-ons\n0. Return");
+                string? editChoice = Console.ReadLine().ToUpper();
+                if (editChoice == "1")
+                {
+                    Console.Clear();
+                    listAddons = await ShowAddons(bookingID);
+                    Console.Write("Add-ons in booking: ");
+                    foreach (var item in listAddons)
+                    {
+                        writeAddon += $"{item}, ";
+                    }
+                    if (writeAddon.EndsWith(", "))
+                    {
+                        writeAddon = writeAddon.Substring(0, writeAddon.Length - 2);
+                        Console.WriteLine(writeAddon);
+                        writeAddon = string.Empty;
+                    }
+                    Console.WriteLine();
+                    Console.WriteLine("1. Extra bed\n2. Half board\n3. Full board");
+                    Console.Write("Type the number for the desired add-on: ");
+                    int addOnInput = Convert.ToInt32(Console.ReadLine());
+                    int addonInsert = 0;
+                    switch (addOnInput)
+                    {
+                        case 1:
+                            addonInsert = 1;
+                            break;
+                        case 2:
+                            addonInsert = 2;
+                            break;
+                        case 3:
+                            addonInsert = 3;
+                            break;
+                        default:
+                            Console.WriteLine("Invalid input\nPress any key to continue...");
+                            Console.ReadKey();
+                            break;
+                    }
+                    if (addonInsert != 0)
+                    {
+                        cmd.CommandText = "INSERT INTO bookings_to_add_ons (booking_id, add_on_id) VALUES ($1, $2)";
+
+                        cmd.Parameters.AddWithValue(bookingID);
+                        cmd.Parameters.AddWithValue(addonInsert);
+
+                        await cmd.ExecuteNonQueryAsync();
+                        cmd.Parameters.Clear();
+                        addOns = false;
+                    }
+                }
+                else if (editChoice == "2")
+                {
+                    Console.Clear();
+                    listAddons = await ShowAddons(bookingID);
+                    Console.Write("Add-ons in booking: ");
+                    foreach (var item in listAddons)
+                    {
+                        writeAddon += $"{item}, ";
+                    }
+                    if (writeAddon.EndsWith(", "))
+                    {
+                        writeAddon = writeAddon.Substring(0, writeAddon.Length - 2);
+                        Console.WriteLine(writeAddon);
+                        writeAddon = string.Empty;
+                    }
+                    Console.WriteLine();
+                    Console.WriteLine("1. Extra bed\n2. Half board\n3. Full board");
+                    Console.Write("Type the number for the add-on to remove: ");
+                    int addOnInput = Convert.ToInt32(Console.ReadLine());
+                    int addonRemove = 0;
+                    switch (addOnInput)
+                    {
+                        case 1:
+                            addonRemove = 1;
+                            break;
+                        case 2:
+                            addonRemove = 2;
+                            break;
+                        case 3:
+                            addonRemove = 3;
+                            break;
+                        default:
+                            Console.WriteLine("Invalid input\nPress any key to continue...");
+                            Console.ReadKey();
+                            break;
+                    }
+                    if (addonRemove != 0)
+                    {
+                        cmd.CommandText = "DELETE FROM bookings_to_add_ons WHERE id IN (SELECT id FROM bookings_to_add_ons WHERE booking_id = $1 AND add_on_id = $2 LIMIT 1)";
+
+                        cmd.Parameters.AddWithValue(bookingID);
+                        cmd.Parameters.AddWithValue(addonRemove);
+
+                        await cmd.ExecuteNonQueryAsync();
+                        cmd.Parameters.Clear();
+                        addOns = false;
+                    }
+                }
+                else if (editChoice == "0")
+                {
+                    return;
+                }
+                else
+                {
+                    Console.Clear();
+                    Console.WriteLine("Invalid input, please type either '1' or '2'");
+                    Thread.Sleep(1500);
+                    Console.Clear();
+                }
+            }
+            while (!addOns);
+        }
+    }
     public async Task<Cart> AddToCart(string startdate, string enddate, string searchquery)
     {
         List<int> allRooms = new List<int>();
@@ -597,5 +847,3 @@ public class Booking(NpgsqlDataSource db)
         }
     }
 }
-
-
