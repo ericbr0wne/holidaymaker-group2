@@ -12,7 +12,6 @@ namespace holidaymaker_group2;
 
 public class Booking(NpgsqlDataSource db)
 {
-
     public async Task Cancel()
     {
         await using (var cmd = db.CreateCommand())
@@ -47,7 +46,6 @@ public class Booking(NpgsqlDataSource db)
 
             while (!cancel)
             {
-
                 Console.Write("Enter Booking number: ");
                 int? BN = Convert.ToInt32(Console.ReadLine());
 
@@ -216,8 +214,12 @@ public class Booking(NpgsqlDataSource db)
 
             Console.Write("\nDo you want any add-ons for the booking? (Y/N): ");
 
-            do
+            while (!addOns)
             {
+                if (addOnList.Any())
+                {
+                    Console.Write("Does the customer want more add-ons? (Y/N): ");
+                }
                 string? input = Console.ReadLine().ToUpper();
                 if (input == "Y")
                 {
@@ -233,26 +235,16 @@ public class Booking(NpgsqlDataSource db)
                             addOnList2.Add("Extra bed");
                             break;
                         case 2:
-                            if (addOnList.Contains(2))
-                            {
-                                Console.Clear();
-                                Console.WriteLine("Can't order more than a half board per booking.\n");
-                                break;
-                            }
                             addOnList.Add(2);
                             addOnList2.Add("Half board");
                             break;
                         case 3:
-                            if (addOnList.Contains(3))
-                            {
-                                Console.Clear();
-                                Console.WriteLine("Can't order more than a full board per booking.\n");
-                                break;
-                            }
                             addOnList.Add(3);
                             addOnList2.Add("Full board");
                             break;
                         default:
+                            Console.WriteLine("Invalid input. Please type one of the options above.");
+                            Thread.Sleep(1200);
                             break;
                     }
                 }
@@ -268,10 +260,8 @@ public class Booking(NpgsqlDataSource db)
                     Thread.Sleep(1500);
                     Console.Clear();
                 }
-                Console.Write("Does the customer want more add-ons? (Y/N): ");
             }
-            while (!addOns);
-
+            
             int bookingNumber = await GenerateNumber();
 
             List<string> listLocationName = new List<string>();
@@ -292,8 +282,6 @@ public class Booking(NpgsqlDataSource db)
                 Console.WriteLine("Add-ons: " + item);
             }
             Console.WriteLine("Start date: " + stringStartDate + "\nEnd date: " + stringEndDate);
-
-            Console.WriteLine($"{startDate} + {endDate}");
 
             decimal totalRoomPrice = await GetRoomPrices(listRoomID);
             decimal totalAddonPrice = await GetAddonPrices(addOnList);
@@ -558,7 +546,7 @@ public class Booking(NpgsqlDataSource db)
                 int i = 1;
                 while (await reader2.ReadAsync())
                 {
-                    Console.WriteLine("Booking details " + i + ":\n" + "\nBooking number: " + reader2.GetInt32(1) + "\nCustomer ID: " + reader2.GetInt32(2) + "\nRoom ID: " + reader2.GetInt32(3) +
+                    Console.WriteLine("Booking reference number: " + i + "\n" + "\nBooking number: " + reader2.GetInt32(1) + "\nCustomer ID: " + reader2.GetInt32(2) + "\nRoom ID: " + reader2.GetInt32(3) +
                         "\nStart date: " + reader2.GetDateTime(4).ToShortDateString() + "\nEnd date: " + reader2.GetDateTime(5).ToShortDateString() + "\n");
                     bookingIDs.Add(i, reader2.GetInt32(0));
                     i++;
@@ -585,18 +573,18 @@ public class Booking(NpgsqlDataSource db)
                     case ConsoleKey.D2:
                         return;
                     case ConsoleKey.D1:
-                        Console.WriteLine("Choose which booking you would like to edit: ");
+                        Console.WriteLine("Input reference number for booking you would like to edit: ");
 
                         int input = Convert.ToInt32(Console.ReadLine());
                         if (bookingIDs.ContainsKey(input))
                         {
-                            Console.WriteLine("Enter new room ID");
+                            Console.WriteLine("Enter new room ID (leave empty if unchanged):");
                             string NewRoomID = Console.ReadLine();
-                            Console.WriteLine("Enter new start date");
+                            Console.WriteLine("Enter new start date (leave empty if unchanged):");
                             string NewStartDate = Console.ReadLine();
-                            Console.WriteLine("Enter new end date");
+                            Console.WriteLine("Enter new end date (leave empty if unchanged):");
                             string NewEndDate = Console.ReadLine();
-                            Console.Write("Do you want to edit add-ons? (Y/N)");
+                            Console.Write("Do you want to edit add-ons? (Y/N) ");
                             if (Console.ReadLine().ToUpper() == "Y")
                             {
                                 await EditAddon(bookingIDs.Values.Max());
@@ -702,7 +690,7 @@ public class Booking(NpgsqlDataSource db)
                             addonInsert = 3;
                             break;
                         default:
-                            Console.WriteLine("Invalid input\nPress any key to continue...");
+                            Console.Write("Invalid input\nPress any key to continue...");
                             Console.ReadKey();
                             break;
                     }
@@ -750,7 +738,7 @@ public class Booking(NpgsqlDataSource db)
                             addonRemove = 3;
                             break;
                         default:
-                            Console.WriteLine("Invalid input\nPress any key to continue...");
+                            Console.Write("Invalid input\nPress any key to continue...");
                             Console.ReadKey();
                             break;
                     }
@@ -863,7 +851,7 @@ public class Booking(NpgsqlDataSource db)
                 }
                 else
                 {
-                    Console.WriteLine("Invalid input!\n Make sure you did't try to add a room that's already added or isn't on the list");
+                    Console.WriteLine("Invalid input.\nMake sure you didn't try to add a room that's already added or isn't on the list");
                     Console.ReadKey();
                 }
             }

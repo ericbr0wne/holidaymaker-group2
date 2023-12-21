@@ -80,11 +80,11 @@ public class Menu(NpgsqlDataSource db)
                 Console.WriteLine();
                 Console.WriteLine("1. Register");
                 Console.WriteLine("2. Edit");
-                Console.WriteLine("3. Display All");
+                Console.WriteLine("3. Display all");
                 Console.WriteLine("4. Return to Main menu");
                 Console.WriteLine("0. Exit HolidayMaker");
 
-                switch (Console.ReadKey().Key)
+                switch (Console.ReadKey(true).Key)
                 {
                     case ConsoleKey.D1:
                         await customerManagment.Reg();
@@ -117,16 +117,24 @@ public class Menu(NpgsqlDataSource db)
                 Console.Clear();
                 Console.WriteLine("*** Bookings ***");
                 Console.WriteLine();
-                Console.WriteLine("1. Create");
-                Console.WriteLine("2. Edit");
+                Console.WriteLine("1. Create booking");
+                Console.WriteLine("2. Edit booking");
                 Console.WriteLine("3. Cancel booking");
                 Console.WriteLine("4. Return to Main menu");
                 Console.WriteLine("0. Exit HolidayMaker");
 
-                switch (Console.ReadKey().Key)
+                switch (Console.ReadKey(true).Key)
                 {
                     case ConsoleKey.D1:
-                        await booking.Create(cart);
+                        if (cart != null)
+                        {
+                            await booking.Create(cart);
+                        }
+                        else
+                        {
+                            Console.WriteLine("\nMake sure to add rooms to cart before creating booking.");
+                            Thread.Sleep(1337);
+                        }
                         cart = null;
                         break;
                     case ConsoleKey.D2:
@@ -161,7 +169,7 @@ public class Menu(NpgsqlDataSource db)
                 Console.WriteLine("2. Return to Main menu");
                 Console.WriteLine("0. Exit HolidayMaker");
 
-                switch (Console.ReadKey().Key)
+                switch (Console.ReadKey(true).Key)
                 {
                     case ConsoleKey.D1:
                         cart = await search.AvailableRooms();
