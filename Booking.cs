@@ -42,7 +42,7 @@ public class Booking(NpgsqlDataSource db)
             }
 
             bool finalCancel = true;
-            int bookingID = 0;
+            List<int> bookingIDs = new List<int>();
 
             while (!cancel)
             {
@@ -79,7 +79,7 @@ public class Booking(NpgsqlDataSource db)
 
                         while (await reader2.ReadAsync())
                         {
-                            bookingID = reader2.GetInt32(0);
+                            bookingIDs.Add(reader2.GetInt32(0));
                             Console.WriteLine("\nBooking details:\n" + "\nBooking number: " + reader2.GetInt32(1) + "\nCustomer ID: " + reader2.GetInt32(2) + "\nRoom ID: " + reader2.GetInt32(3) +
                                 "\nStart date: " + reader2.GetDateTime(4).ToShortDateString() + "\nEnd date: " + reader2.GetDateTime(5).ToShortDateString());
                         }
@@ -104,7 +104,7 @@ public class Booking(NpgsqlDataSource db)
                     string? input = Console.ReadLine().ToUpper();
                     if (input == "Y")
                     {
-                        cmd.CommandText = $"DELETE FROM bookings_to_add_ons ba WHERE ba.booking_id = {bookingID}";
+                        cmd.CommandText = $"DELETE FROM bookings_to_add_ons ba WHERE ba.booking_id = {bookingIDs.Max()}";
 
                         await cmd.ExecuteNonQueryAsync();
 
