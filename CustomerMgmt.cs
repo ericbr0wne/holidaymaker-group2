@@ -226,7 +226,10 @@ public class CustomerMgmt(NpgsqlDataSource db)
 
             cmd.CommandText = $"UPDATE customers {setClause} WHERE date_of_birth = '{DOB}'";
 
-            await cmd.ExecuteNonQueryAsync();
+            if (setClause != "SET ")
+            {
+                await cmd.ExecuteNonQueryAsync();
+            }
         }
     }
 
